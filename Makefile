@@ -1,18 +1,24 @@
 NAME = ircserv
-SRCS = main.cpp irc.cpp
-OBJS = $(SRCS:.cpp=.o)
-CXX = c++ -Wall -Wextra -Werror -std=c++98 -g3
+SOURCE = $(shell find ./src -iname "*.cpp")
 
-all: $(NAME)
+OBJS = $(SOURCE:.cpp=.o)
+CXX = c++
+FLAGS = -Wall -Wextra -Werror -std=c++98 #-g3 -fsanitize=address
+INCLUDE = -I ./include
+
+all:$(NAME)
 
 $(NAME): $(OBJS)
-	$(CXX) $(OBJS) -o $(NAME)
+	@$(CXX) $(FLAGS) $(OBJS) $(INCLUDE) -o $(NAME) 
+
+%.o: %.cpp
+	@$(CXX) $(FLAGS) $(INCLUDE) -c $< -o $@ && printf "Compiling: $(notdir $<)\n"
 
 clean:
-	rm -f $(OBJS)
+	@$(RM) $(OBJS)
 
 fclean: clean
-	rm -f $(NAME)
+	@$(RM) $(NAME)
 
 re: fclean all
 
