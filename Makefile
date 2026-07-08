@@ -3,7 +3,7 @@ SOURCE = $(shell find ./src -iname "*.cpp")
 
 OBJS = $(SOURCE:.cpp=.o)
 CXX = c++
-FLAGS = -Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address
+FLAGS = -Wall -Wextra -Werror -std=c++98 #-g3 -fsanitize=address
 INCLUDE = -I ./include
 
 all:$(NAME)

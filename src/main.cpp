@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 12:24:38 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/08 12:43:44 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/08 16:13:51 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,6 @@ int main (int argc, char **argv)
     {
         Server server(argv[1], argv[2]);
         server.init();
-        std::cout << server.get_port() << std::endl;
     }
     catch(const std::exception& e)
     {
