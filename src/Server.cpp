@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/08 16:27:58 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/13 18:00:43 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,4 +64,56 @@ void Server::init()
 	
 	//!!ESTO NO VA AQUI PERO POR AHORA ES DONDE FUNCIONA!!!
 	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
+}
+
+void Server::pollLoop()
+{
+	while (true)
+	{
+		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
+		if (ready < 0) /* manejar error, ojo con EINTR */ 
+		{
+			if (errno != EINTR)
+				std::cerr << "poll error: " << strerror(errno) << std::endl;
+			break;
+		}
+		for (size_t i = 0; i < _pfd_arr.size(); ++i)
+		{
+			if (_pfd_arr[i].revents & POLLIN)
+			{
+				if (_pfd_arr[i].fd == _serv_socket) // si nosotros somos el listener, es una nueva conexion
+				{
+					// nueva conexión entrante -> accept()
+					struct sockaddr_in client_addr;
+					socklen_t len = sizeof(client_addr);
+					int client_fd = accept(_serv_socket, (struct sockaddr*)&client_addr, &len);
+					if (client_fd < 0)
+					{
+						if (errno != EAGAIN && errno != EWOULDBLOCK)
+						std::cerr << "accept error: " << strerror(errno) << std::endl;
+						return;
+					}
+					std::cout << "Viene otro!!" << std::endl;
+				}
+				else
+				{
+					try
+					{
+						// datos de un cliente existente -> recv()
+						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
+					}
+					catch(const std::exception& e)
+					{
+						std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+					}
+					
+				}
+			}
+			else if (_pfd_arr[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
+                std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+				//desconectar y cerrar lo que corresponda
+            }
+		}
+	}
 }

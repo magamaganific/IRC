@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/08 16:11:35 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/13 16:52:44 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class Server
 		Server &operator=(const Server &other);
 		std::string get_port();
 		void init();
+		void pollLoop();
 		~Server();
 };
 
