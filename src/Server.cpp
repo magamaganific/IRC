@@ -65,3 +65,7 @@ void Server::init()
 	//!!ESTO NO VA AQUI PERO POR AHORA ES DONDE FUNCIONA!!!
 	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
+
+void Server::end(){
+	freeaddrinfo(_addrLst);
+}

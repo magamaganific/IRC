@@ -53,6 +53,7 @@ int main (int argc, char **argv)
     {
         Server server(argv[1], argv[2]);
         server.init();
+        server.end();
     }
     catch(const std::exception& e)
     {

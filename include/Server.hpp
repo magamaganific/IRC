@@ -43,6 +43,7 @@ class Server
 		Server &operator=(const Server &other);
 		std::string get_port();
 		void init();
+		void end();
 		~Server();
 };
 
