@@ -79,7 +79,7 @@ void Server::pollLoop()
 		}
 		for (size_t i = 0; i < _pfd_arr.size(); ++i)
 		{
-			if (_pfd_arr[i].revents & POLLIN)
+			if (_pfd_arr[i].revents & (POLLIN | POLLHUP))
 			{
 				if (_pfd_arr[i].fd == _serv_socket) // si nosotros somos el listener, es una nueva conexion
 				{
@@ -93,12 +93,15 @@ void Server::pollLoop()
 						std::cerr << "accept error: " << strerror(errno) << std::endl;
 						return;
 					}
+					Client client(client_fd);
+					this->clients.insert(std::make_pair(client_fd, client));
 					std::cout << "Viene otro!!" << std::endl;
 				}
 				else
 				{
 					try
 					{
+						// read_client_input(_serv_socket, );
 						// datos de un cliente existente -> recv()
 						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
 					}
@@ -116,4 +119,8 @@ void Server::pollLoop()
             }
 		}
 	}
+}
+
+void Server::end(){
+	freeaddrinfo(_addrLst);
 }

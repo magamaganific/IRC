@@ -25,6 +25,8 @@
 # include <exception>
 # include <errno.h>
 # include <vector>
+# include <map>
+# include "Client.hpp"
 
 
 class Server
@@ -35,6 +37,7 @@ class Server
         int							_serv_socket;
         struct addrinfo				*_addrLst; // lista enlazada de `sockaddr` de algún tipo que podremos utilizar más adelante
 		std::vector<struct pollfd>	_pfd_arr;
+		std::map<int, Client>		clients;
 		
 	public:
 		Server();
