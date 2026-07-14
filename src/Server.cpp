@@ -66,22 +66,24 @@ void Server::init()
 	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
-void Server::readClientInput(Client client)
+void Server::readClientInput(int fd)
 {
 	char buf[256];
-	int nbytes = recv(client.getFd(), &buf, sizeof(buf), 0);
+	Client &cli = _clients[fd];
+	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
 	std::cout<<nbytes<<std::endl;
-	std::cout<<client.getFd()<<std::endl;
+	std::cout<<cli.getFd()<<std::endl;
 	if (nbytes <= 0)
 	{
 		if (nbytes == 0)
-			std::cout<<"Client %d hung up"<< client.getFd()<<std::endl;
+			std::cout<<"Client %d hung up"<< cli.getFd()<<std::endl;
 		else
 			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
 	}
 	else
 	{
+		std::cout<<buf<<std::endl;
 		std::cout<<"something else"<<std::endl;
 	}
 }
@@ -116,20 +118,16 @@ void Server::pollLoop()
 					}
 					std::cout << "Viene otro!!" << std::endl;
 					Client client(client_fd);
-					this->clients.insert(std::make_pair(client_fd, client));
+					this->_clients.insert(std::make_pair(client_fd, client));
 					_pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
 					std::cout<<client_fd<<std::endl;
-					std::cout<<client.getFd()<<std::endl;
+					std::cout<<client.getFd()<<std::endl<<std::endl;
 				}
 				else
 				{
 					try
 					{
-						std::map<int, Client>::iterator it;
-						it = this->clients.lower_bound(_pfd_arr[i].fd);
-						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
-						std::cout<<it->second.getFd()<<std::endl;
-						readClientInput(it->second);
+						readClientInput(_pfd_arr[i].fd);
 						// datos de un cliente existente -> recv()
 						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
 					}

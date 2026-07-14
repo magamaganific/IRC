@@ -1,6 +1,12 @@
 #include "../include/Client.hpp"
+#include "../include/Server.hpp"
 
-Client::Client(int fd): _fd(fd){
+
+Client::Client(){
+}
+
+Client::Client(int fd){
+	this->_fd = fd;
 }
 
 Client::Client(const Client &old){
@@ -31,5 +37,6 @@ std::string Client::getNick(){
 }
 
 int Client::getFd(){
+	std::cout<<"get->"<<this->_fd<<std::endl;
 	return(this->_fd);
 }

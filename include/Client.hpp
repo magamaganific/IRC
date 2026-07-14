@@ -10,7 +10,7 @@ private:
 	std::string _nick;
 	int _fd;
 public:
-	// Client();
+	Client();
 	Client(int fd);
 	Client(const Client &old);
 	Client&operator=(const Client &old);

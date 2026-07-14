@@ -37,7 +37,7 @@ class Server
         int							_serv_socket;
         struct addrinfo				*_addrLst; // lista enlazada de `sockaddr` de algún tipo que podremos utilizar más adelante
 		std::vector<struct pollfd>	_pfd_arr;
-		std::map<int, Client>		clients;
+		std::map<int, Client>		_clients;
 		
 	public:
 		Server();
@@ -48,7 +48,7 @@ class Server
 		void init();
 		void end();
 		void pollLoop();
-		void readClientInput(Client client);
+		void readClientInput(int fd);
 		~Server();
 };
 
