@@ -48,6 +48,7 @@ class Server
 		void init();
 		void end();
 		void pollLoop();
+		void readClientInput(Client client);
 		~Server();
 };
 

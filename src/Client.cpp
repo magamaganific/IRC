@@ -1,6 +1,6 @@
 #include "../include/Client.hpp"
 
-Client::Client(int fd): _name(NULL), _nick(NULL), _fd(fd){
+Client::Client(int fd): _fd(fd){
 }
 
 Client::Client(const Client &old){

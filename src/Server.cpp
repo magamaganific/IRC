@@ -66,9 +66,30 @@ void Server::init()
 	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
+void Server::readClientInput(Client client)
+{
+	char buf[256];
+	int nbytes = recv(client.getFd(), &buf, sizeof(buf), 0);
+
+	std::cout<<nbytes<<std::endl;
+	std::cout<<client.getFd()<<std::endl;
+	if (nbytes <= 0)
+	{
+		if (nbytes == 0)
+			std::cout<<"Client %d hung up"<< client.getFd()<<std::endl;
+		else
+			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
+	}
+	else
+	{
+		std::cout<<"something else"<<std::endl;
+	}
+}
+
 void Server::pollLoop()
 {
-	while (true)
+	int j = 0;
+	while (j == 0)
 	{
 		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
 		if (ready < 0) /* manejar error, ojo con EINTR */ 
@@ -93,21 +114,29 @@ void Server::pollLoop()
 						std::cerr << "accept error: " << strerror(errno) << std::endl;
 						return;
 					}
+					std::cout << "Viene otro!!" << std::endl;
 					Client client(client_fd);
 					this->clients.insert(std::make_pair(client_fd, client));
-					std::cout << "Viene otro!!" << std::endl;
+					_pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
+					std::cout<<client_fd<<std::endl;
+					std::cout<<client.getFd()<<std::endl;
 				}
 				else
 				{
 					try
 					{
-						// read_client_input(_serv_socket, );
+						std::map<int, Client>::iterator it;
+						it = this->clients.lower_bound(_pfd_arr[i].fd);
+						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
+						std::cout<<it->second.getFd()<<std::endl;
+						readClientInput(it->second);
 						// datos de un cliente existente -> recv()
 						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
 					}
 					catch(const std::exception& e)
 					{
 						std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+						j = 1;
 					}
 					
 				}
