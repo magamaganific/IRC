@@ -15,6 +15,7 @@
 
 # include <iostream>
 # include <cstring>
+# include <cstdio>
 # include <sstream>
 # include <netdb.h>
 # include <arpa/inet.h>

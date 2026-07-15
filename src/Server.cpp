@@ -68,12 +68,26 @@ void Server::init()
 
 void Server::parse_input(std::string buf)
 {
-	(void)buf;
+	if (buf.find("REG") == 0)
+		std::cout<<"Registration started, please enter: password, nickname and name"<<std::endl;
+	if (buf.find("PASS") == 0)
+	{
+		if (sscanf((buf.c_str()), "PASS %s", (char *)_password.c_str()) != 1)
+			std::cout<<"Wrong password"<<std::endl;
+		else
+			std::cout<<"Password accepted: "<<_password<<std::endl;
+	}
+	if (buf.find("NICK") == 0)
+	{
+		// std::cout<<buf;
+		buf = buf.substr(5, buf.size());
+		std::cout<< buf;
+	}
 }
 
 void Server::readClientInput(int fd)
 {
-	char buf[256];
+	char buf[256] = {'\0'};
 	Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
@@ -88,7 +102,7 @@ void Server::readClientInput(int fd)
 	}
 	else
 	{
-		std::cout<<buf<<std::endl;
+		std::cout<<buf;
 		parse_input(buf);
 	}
 }
@@ -134,7 +148,7 @@ void Server::pollLoop()
 					{
 						readClientInput(_pfd_arr[i].fd);
 						// datos de un cliente existente -> recv()
-						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
+						// std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
 					}
 					catch(const std::exception& e)
 					{
