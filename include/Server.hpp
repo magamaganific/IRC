@@ -49,6 +49,7 @@ class Server
 		void end();
 		void pollLoop();
 		void readClientInput(int fd);
+		void parse_input(std::string buf);
 		~Server();
 };
 
