@@ -72,23 +72,21 @@ void Server::init()
 // 	Client &cli = _clients[fd];
 // 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-// 	std::cout<<"nbytes: "<<nbytes<<std::endl;
-// 	std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
-// 	std::cout<<"everything inside _clients: "<<_clients[0].getFd()
-// 	<<_clients[1].getFd()<<std::endl;
-// 	if (nbytes <= 0)
-// 	{
-// 		if (nbytes == 0)
-// 			std::cout<<"Client "<< cli.getFd()<<" hung up"<<std::endl;
-// 		else
-// 			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
-// 	}
-// 	else
-// 	{
-// 		std::cout<<buf<<std::endl;
-// 		std::cout<<"something else"<<std::endl;
-// 	}
-// }
+	std::cout<<nbytes<<std::endl;
+	std::cout<<cli.getFd()<<std::endl;
+	if (nbytes <= 0)
+	{
+		if (nbytes == 0)
+			std::cout<<"Client %d hung up"<< cli.getFd()<<std::endl;
+		else
+			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
+	}
+	else
+	{
+		std::cout<<buf<<std::endl;
+		std::cout<<"something else"<<std::endl;
+	}
+}
 
 void Server::pollLoop()
 {
@@ -118,10 +116,12 @@ void Server::pollLoop()
 						std::cerr << "accept error: " << strerror(errno) << std::endl;
 						return;
 					}
-					std::cout<<"nueva conexión"<< std::endl;
-					// Client client(client_fd);
-					// this->_clients.insert(std::make_pair(client_fd, client));
-					// _pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
+					std::cout << "Viene otro!!" << std::endl;
+					Client client(client_fd);
+					this->_clients.insert(std::make_pair(client_fd, client));
+					_pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
+					std::cout<<client_fd<<std::endl;
+					std::cout<<client.getFd()<<std::endl<<std::endl;
 				}
 				else
 				{
@@ -129,7 +129,7 @@ void Server::pollLoop()
 					{
 						readClientInput(_pfd_arr[i].fd);
 						// datos de un cliente existente -> recv()
-						std::cout << "ESTAMOS ESCRIBIENDO" << std::endl;
+						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
 					}
 					catch(const std::exception& e)
 					{
@@ -139,7 +139,7 @@ void Server::pollLoop()
 					
 				}
 			}
-			else if (_pfd_arr[i].revents & (POLLERR | POLLNVAL))
+			else if (_pfd_arr[i].revents & (POLLERR | POLLHUP | POLLNVAL))
             {
                 std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
 				//desconectar y cerrar lo que corresponda
