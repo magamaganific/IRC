@@ -118,6 +118,7 @@ void Server::pollLoop()
 						std::cerr << "accept error: " << strerror(errno) << std::endl;
 						return;
 					}
+					std::cout<<"nueva conexión"<< std::endl;
 					// Client client(client_fd);
 					// this->_clients.insert(std::make_pair(client_fd, client));
 					// _pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
