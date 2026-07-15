@@ -66,27 +66,29 @@ void Server::init()
 	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
-void Server::readClientInput(int fd)
-{
-	char buf[256];
-	Client &cli = _clients[fd];
-	int nbytes = recv(fd, &buf, sizeof(buf), 0);
+// void Server::readClientInput(int fd)
+// {
+// 	char buf[256];
+// 	Client &cli = _clients[fd];
+// 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	std::cout<<nbytes<<std::endl;
-	std::cout<<cli.getFd()<<std::endl;
-	if (nbytes <= 0)
-	{
-		if (nbytes == 0)
-			std::cout<<"Client "<< cli.getFd()<<" hung up"<<std::endl;
-		else
-			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
-	}
-	else
-	{
-		std::cout<<buf<<std::endl;
-		std::cout<<"something else"<<std::endl;
-	}
-}
+// 	std::cout<<"nbytes: "<<nbytes<<std::endl;
+// 	std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
+// 	std::cout<<"everything inside _clients: "<<_clients[0].getFd()
+// 	<<_clients[1].getFd()<<std::endl;
+// 	if (nbytes <= 0)
+// 	{
+// 		if (nbytes == 0)
+// 			std::cout<<"Client "<< cli.getFd()<<" hung up"<<std::endl;
+// 		else
+// 			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
+// 	}
+// 	else
+// 	{
+// 		std::cout<<buf<<std::endl;
+// 		std::cout<<"something else"<<std::endl;
+// 	}
+// }
 
 void Server::pollLoop()
 {
@@ -116,9 +118,9 @@ void Server::pollLoop()
 						std::cerr << "accept error: " << strerror(errno) << std::endl;
 						return;
 					}
-					Client client(client_fd);
-					this->_clients.insert(std::make_pair(client_fd, client));
-					_pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
+					// Client client(client_fd);
+					// this->_clients.insert(std::make_pair(client_fd, client));
+					// _pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
 				}
 				else
 				{
