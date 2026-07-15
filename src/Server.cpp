@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/13 18:00:43 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/15 17:16:49 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,10 +66,30 @@ void Server::init()
 	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
+void Server::parse_input(std::string buf)
+{
+	if (buf.find("REG") == 0)
+		std::cout<<"Registration started, please enter: password, nickname and name"<<std::endl;
+	if (buf.find("PASS") == 0)
+	{
+		if (sscanf((buf.c_str()), "PASS %s", (char *)_password.c_str()) != 1)
+			std::cout<<"Wrong password"<<std::endl;
+		else
+			std::cout<<"Password accepted: "<<_password<<std::endl;
+	}
+	if (buf.find("NICK") == 0)
+	{
+		// std::cout<<buf;
+		buf = buf.substr(5, buf.size());
+		std::cout<< buf;
+	}
+}
+
 void Server::pollLoop()
 {
 	while (true)
 	{
+		std::cout << _pfd_arr.size() - 1 << " connected clients. Waiting for events..." << std::endl;
 		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
 		if (ready < 0) /* manejar error, ojo con EINTR */ 
 		{
@@ -90,17 +110,34 @@ void Server::pollLoop()
 					if (client_fd < 0)
 					{
 						if (errno != EAGAIN && errno != EWOULDBLOCK)
-						std::cerr << "accept error: " << strerror(errno) << std::endl;
+							std::cerr << "accept error: " << strerror(errno) << std::endl;
 						return;
 					}
-					std::cout << "Viene otro!!" << std::endl;
+					else if (client_fd >= 0)
+					{
+						_pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
+					}
 				}
 				else
 				{
 					try
 					{
-						// datos de un cliente existente -> recv()
-						std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
+						char buffer[256] = { 0 };
+						ssize_t n_bytes = recv(_pfd_arr[i].fd, buffer, sizeof(buffer), 0);
+						if (n_bytes < 0)
+						{
+							std::cerr << "recv error: " << strerror(errno) << std::endl;
+						}
+						else if (n_bytes == 0)
+						{
+							std::cout << "Client on socket " << _pfd_arr[i].fd << std::endl;
+							_pfd_arr.erase(_pfd_arr.begin() + i);
+						}
+						else if (n_bytes > 0)
+						{
+							std::cout<<buffer;
+							parse_input(buffer);
+						}
 					}
 					catch(const std::exception& e)
 					{

@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/13 16:52:44 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/15 17:12:28 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <iostream>
 # include <cstring>
+# include <cstdio>
 # include <sstream>
 # include <netdb.h>
 # include <arpa/inet.h>
@@ -25,6 +26,8 @@
 # include <exception>
 # include <errno.h>
 # include <vector>
+# include <map>
+# include "Client.hpp"
 
 
 class Server
@@ -44,6 +47,7 @@ class Server
 		std::string get_port();
 		void init();
 		void pollLoop();
+		void parse_input(std::string buf);
 		~Server();
 };
 
