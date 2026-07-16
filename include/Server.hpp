@@ -14,6 +14,7 @@
  #define SERVER_HPP
 
 # include <iostream>
+# include <fstream>
 # include <cstring>
 # include <cstdio>
 # include <sstream>
@@ -27,6 +28,7 @@
 # include <errno.h>
 # include <vector>
 # include <map>
+# include <unistd.h>
 # include "Client.hpp"
 
 
@@ -40,6 +42,7 @@ class Server
 		std::vector<struct pollfd>	_pfd_arr;
 		std::map<int, Client>		_clients;
 		std::vector<int>			_acepted_fds;
+		 std::vector<int>           _disconnected_sockets;
 		
 	public:
 		Server();
@@ -50,7 +53,7 @@ class Server
 		void init();
 		void end();
 		void pollLoop();
-		void readClientInput(int fd);
+		void readClientInput(int fd, int i);
 		void parse_input(std::string buf);
 		~Server();
 };

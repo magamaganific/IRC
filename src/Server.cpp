@@ -85,18 +85,20 @@ void Server::parse_input(std::string buf)
 	}
 }
 
-void Server::readClientInput(int fd)
+void Server::readClientInput(int fd, int i)
 {
 	char buf[256] = {'\0'};
-	Client &cli = _clients[fd];
+	// Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	std::cout<<"nbytes: "<<nbytes<<std::endl;
-	std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
-	if (nbytes <= 0)
-	{
-		if (nbytes == 0)
-			std::cout<<"Client "<<fd<<" hung up"<<std::endl;
+	// std::cout<<"nbytes: "<<nbytes<<std::endl;
+	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
+	if (nbytes <= 0){
+		if (nbytes == 0){
+			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
+			_pfd_arr.erase(_pfd_arr.begin() + i);
+			_disconnected_sockets.push_back(_clients[fd].getFd());
+		}
 		else
 			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
 	}
@@ -121,7 +123,7 @@ void Server::pollLoop()
 		}
 		for (size_t i = 0; i < _pfd_arr.size(); i++)
 		{
-			if (_pfd_arr[i].revents & (POLLIN | POLLHUP))
+			if (_pfd_arr[i].revents & (POLLIN))
 			{
 				if (_pfd_arr[i].fd == _serv_socket) // si nosotros somos el listener, es una nueva conexion
 				{
@@ -137,40 +139,53 @@ void Server::pollLoop()
 					}
 					else if (client_fd > 0)
 						_acepted_fds.push_back(client_fd);
+					std::cout << "Nueva Conexión" << std::endl;
 				}
 				else
 				{
 					try
 					{
-						readClientInput(_pfd_arr[i].fd);
+						readClientInput(_pfd_arr[i].fd, i);
 						// datos de un cliente existente -> recv()
 						// std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
 					}
 					catch(const std::exception& e)
 					{
 						std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
-						j = 1;
+						
 					}
 					
 				}
 			}
-			else if (_pfd_arr[i].revents & (POLLERR | POLLNVAL))
+			else if (_pfd_arr[i].revents & (POLLERR | POLLNVAL  | POLLHUP))
             {
                 std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+				// _pfd_arr.erase(_pfd_arr.begin() + i);
+				std::vector<struct pollfd>::iterator it = _pfd_arr.begin() + i;
+				std::cerr<<"socket: "<<it->fd<<std::endl;
 				//desconectar y cerrar lo que corresponda
             }
 			
 		}
-		std::cout << "Nueva Conexión" << std::endl;
-		int clifd = _acepted_fds[0];
-		Client client(clifd);
-		_clients.insert(std::make_pair(clifd, Client(clifd)));
-		_pfd_arr.push_back((pollfd){clifd, POLLIN, 0});
-		// std::cout<<client_fd<<std::endl;
-		std::cout<<"client_fd: "<<clifd<<std::endl;
-		std::cout<<"client fd: "<<client.getFd()<<std::endl;
-		std::cout<<"first fd in clients: "<<_clients.begin()->second.getFd()<<std::endl<<std::endl;
-		std::cout<<"last fd in clients: "<<_clients.rbegin()->second.getFd()<<std::endl<<std::endl;
+		if (_acepted_fds.size() > 0)
+		{
+			int clifd = _acepted_fds[0];
+			// Client client(clifd);
+			_clients.insert(std::make_pair(clifd, Client(clifd)));
+			_pfd_arr.push_back((pollfd){clifd, POLLIN, 0});
+			std::cout<<"pfd_arr: "<<_pfd_arr[1].fd<<std::endl;
+			_acepted_fds.clear();
+			// std::cout<<client_fd<<std::endl;
+			// std::cout<<"client_fd: "<<clifd<<std::endl;
+			// std::cout<<"client fd: "<<client.getFd()<<std::endl;
+			// std::cout<<"first fd in clients: "<<_clients.begin()->second.getFd()<<std::endl<<std::endl;
+			// std::cout<<"last fd in clients: "<<_clients.end()->second.getFd()<<std::endl<<std::endl;
+		}
+		if (_disconnected_sockets.size() > 0)
+		{
+			close(_disconnected_sockets[0]);
+			_disconnected_sockets.clear();
+		}
 	}
 }
 

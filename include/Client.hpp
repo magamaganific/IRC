@@ -9,6 +9,7 @@ private:
 	int _fd;
 	std::string _nick;
 	std::string _name;
+	bool		_isRegistered;
 public:
 	Client();
 	Client(int fd);
@@ -21,6 +22,7 @@ public:
 
 	std::string getName();
 	std::string getNick();
+	bool		getIsRegistered();
 	int getFd() const;
 };
 
