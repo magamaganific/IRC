@@ -91,12 +91,12 @@ void Server::readClientInput(int fd)
 	Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	// std::cout<<nbytes<<std::endl;
-	// std::cout<<cli.getFd()<<std::endl;
+	std::cout<<"nbytes: "<<nbytes<<std::endl;
+	std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
 	if (nbytes <= 0)
 	{
 		if (nbytes == 0)
-			std::cout<<"Client %d hung up"<< cli.getFd()<<std::endl;
+			std::cout<<"Client "<<fd<<" hung up"<<std::endl;
 		else
 			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
 	}
@@ -119,7 +119,7 @@ void Server::pollLoop()
 				std::cerr << "poll error: " << strerror(errno) << std::endl;
 			break;
 		}
-		for (size_t i = 0; i < _pfd_arr.size(); ++i)
+		for (size_t i = 0; i < _pfd_arr.size(); i++)
 		{
 			if (_pfd_arr[i].revents & (POLLIN | POLLHUP))
 			{
@@ -135,12 +135,8 @@ void Server::pollLoop()
 						std::cerr << "accept error: " << strerror(errno) << std::endl;
 						return;
 					}
-					std::cout << "Nueva Conexión" << std::endl;
-					Client client(client_fd);
-					this->_clients.insert(std::make_pair(client_fd, client));
-					_pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
-					// std::cout<<client_fd<<std::endl;
-					// std::cout<<client.getFd()<<std::endl<<std::endl;
+					else if (client_fd > 0)
+						_acepted_fds.push_back(client_fd);
 				}
 				else
 				{
@@ -158,12 +154,23 @@ void Server::pollLoop()
 					
 				}
 			}
-			else if (_pfd_arr[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+			else if (_pfd_arr[i].revents & (POLLERR | POLLNVAL))
             {
                 std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
 				//desconectar y cerrar lo que corresponda
             }
+			
 		}
+		std::cout << "Nueva Conexión" << std::endl;
+		int clifd = _acepted_fds[0];
+		Client client(clifd);
+		_clients.insert(std::make_pair(clifd, Client(clifd)));
+		_pfd_arr.push_back((pollfd){clifd, POLLIN, 0});
+		// std::cout<<client_fd<<std::endl;
+		std::cout<<"client_fd: "<<clifd<<std::endl;
+		std::cout<<"client fd: "<<client.getFd()<<std::endl;
+		std::cout<<"first fd in clients: "<<_clients.begin()->second.getFd()<<std::endl<<std::endl;
+		std::cout<<"last fd in clients: "<<_clients.rbegin()->second.getFd()<<std::endl<<std::endl;
 	}
 }
 

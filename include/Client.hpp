@@ -6,9 +6,9 @@
 class Client
 {
 private:
-	std::string _name;
-	std::string _nick;
 	int _fd;
+	std::string _nick;
+	std::string _name;
 public:
 	Client();
 	Client(int fd);
@@ -21,7 +21,7 @@ public:
 
 	std::string getName();
 	std::string getNick();
-	int getFd();
+	int getFd() const;
 };
 
 #endif

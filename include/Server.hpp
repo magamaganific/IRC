@@ -39,6 +39,7 @@ class Server
         struct addrinfo				*_addrLst; // lista enlazada de `sockaddr` de algún tipo que podremos utilizar más adelante
 		std::vector<struct pollfd>	_pfd_arr;
 		std::map<int, Client>		_clients;
+		std::vector<int>			_acepted_fds;
 		
 	public:
 		Server();

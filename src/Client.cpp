@@ -5,17 +5,20 @@
 Client::Client(){
 }
 
-Client::Client(int fd){
-	this->_fd = fd;
+Client::Client(int fd):_fd(fd), _nick(""), _name(""){
 }
 
-Client::Client(const Client &old){
-	(void)old;
+Client::Client(const Client &old): _fd(old._fd), _nick(old._nick), _name(old._name){
 }
 
 Client &Client::operator=(const Client &old){
-	(void)old;
-	return(*this);
+	if (this != &old)
+	{
+		this->_fd = old._fd;
+		this->_nick = old._nick;
+		this->_name = old._name;
+	}
+	return (*this);
 }
 
 Client::~Client(){}
@@ -36,7 +39,7 @@ std::string Client::getNick(){
 	return(this->_nick);
 }
 
-int Client::getFd(){
+int Client::getFd() const{
 	std::cout<<"get->"<<this->_fd<<std::endl;
-	return(this->_fd);
+	return(_fd);
 }
