@@ -28,7 +28,7 @@ int check_in(char **argv)
     {
         for(size_t i = 0; i < pass.length(); i++)
         {
-            if (pass[i] <= 32 || pass[i] > 127)
+            if (pass[i] <= 32 || pass[i] >= 127)
                 return (0);
         }
     }else

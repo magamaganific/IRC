@@ -42,7 +42,7 @@ class Server
 		std::vector<struct pollfd>	_pfd_arr;
 		std::map<int, Client>		_clients;
 		std::vector<int>			_acepted_fds;
-		 std::vector<int>           _disconnected_sockets;
+		std::vector<int>			_disconnected_sockets;
 		
 	public:
 		Server();
@@ -54,7 +54,7 @@ class Server
 		void end();
 		void pollLoop();
 		void readClientInput(int fd, int i);
-		void parse_input(std::string buf);
+		void parse_input(Client &client);
 		~Server();
 };
 

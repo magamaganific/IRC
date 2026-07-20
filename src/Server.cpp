@@ -16,7 +16,9 @@
 Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
-{}
+{
+	_password = _password + "\n";
+}
 Server::Server(const Server &other)
 {
 	(void)other;
@@ -66,13 +68,17 @@ void Server::init()
 	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
-void Server::parse_input(std::string buf)
+void Server::parse_input(Client &client)
 {
-	if (buf.find("REG") == 0)
-		std::cout<<"Registration started, please enter: password, nickname and name"<<std::endl;
+	std::string buf = client.getBuf();
+	if (buf.find("CAP") == 0)
+		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		if (sscanf((buf.c_str()), "PASS %s", (char *)_password.c_str()) != 1)
+		buf = buf.substr(5, buf.size() - 2);
+		std::cout<< "buf:"<< buf;
+		std::cout<<"password:"<< _password;
+		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
 			std::cout<<"Password accepted: "<<_password<<std::endl;
@@ -82,6 +88,7 @@ void Server::parse_input(std::string buf)
 		// std::cout<<buf;
 		buf = buf.substr(5, buf.size());
 		std::cout<< buf;
+		client.setNick(buf);
 	}
 }
 
@@ -105,7 +112,8 @@ void Server::readClientInput(int fd, int i)
 	else
 	{
 		std::cout<<buf;
-		parse_input(buf);
+		_clients[fd].setBuf(buf);
+		parse_input(_clients[fd]);
 	}
 }
 

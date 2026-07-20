@@ -10,6 +10,8 @@ private:
 	std::string _nick;
 	std::string _name;
 	bool		_isRegistered;
+	bool		_isAuthenticated;
+	std::string _buf;
 public:
 	Client();
 	Client(int fd);
@@ -19,9 +21,11 @@ public:
 
 	void setName(std::string name);
 	void setNick(std::string nick);
+	void setBuf(char *buf);
 
 	std::string getName();
 	std::string getNick();
+	std::string getBuf();
 	bool		getIsRegistered();
 	int getFd() const;
 };
