@@ -22,11 +22,14 @@ public:
 	void setName(std::string name);
 	void setNick(std::string nick);
 	void setBuf(char *buf);
+	void setIsRegistered(bool tof);
+	void setIsAuthenticated(bool tof);
 
 	std::string getName();
 	std::string getNick();
 	std::string getBuf();
 	bool		getIsRegistered();
+	bool		getIsAuthenticated();
 	int getFd() const;
 };
 

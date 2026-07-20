@@ -43,6 +43,14 @@ void Client::setBuf(char *buf){
 	this->_buf = buf;
 }
 
+void Client::setIsRegistered(bool tof){
+	_isRegistered = tof;
+}
+
+void Client::setIsAuthenticated(bool tof){
+	_isAuthenticated = tof;
+}
+
 std::string Client::getName(){
 	return(_name);
 }

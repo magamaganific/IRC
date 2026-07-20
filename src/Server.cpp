@@ -81,7 +81,10 @@ void Server::parse_input(Client &client)
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
+		{
 			std::cout<<"Password accepted: "<<_password<<std::endl;
+			client.setIsAuthenticated(true);
+		}
 	}
 	if (buf.find("NICK") == 0)
 	{
@@ -89,6 +92,7 @@ void Server::parse_input(Client &client)
 		buf = buf.substr(5, buf.size());
 		std::cout<< buf;
 		client.setNick(buf);
+		client.setIsRegistered(true);
 	}
 }
 
