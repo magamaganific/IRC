@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/15 17:12:28 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/16 13:00:38 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,9 @@
 # include <errno.h>
 # include <vector>
 # include <map>
+# include <signal.h>
+# include <unistd.h>
+# include <iostream>
 # include "Client.hpp"
 
 

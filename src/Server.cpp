@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/15 17:16:49 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/16 16:01:47 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ void Server::init()
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
 	
 	//!!ESTO NO VA AQUI PERO POR AHORA ES DONDE FUNCIONA!!!
-	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
+	freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
 void Server::parse_input(std::string buf)
@@ -85,8 +85,16 @@ void Server::parse_input(std::string buf)
 	}
 }
 
+void func ( int sigaction )
+{
+	(void)sigaction;
+	
+}
+
 void Server::pollLoop()
 {
+	signal(SIGINT, func );
+	signal(SIGPIPE, SIG_IGN);
 	while (true)
 	{
 		std::cout << _pfd_arr.size() - 1 << " connected clients. Waiting for events..." << std::endl;
@@ -120,6 +128,7 @@ void Server::pollLoop()
 				}
 				else
 				{
+					//manejar cuando algun fd de cliente tiene algo que decir
 					try
 					{
 						char buffer[256] = { 0 };
