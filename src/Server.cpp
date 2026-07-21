@@ -3,20 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/08 16:27:58 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/21 13:34:55 by dgargantill      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 # include "Server.hpp"
 
 Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
-{}
+{
+	_password = _password + "\r\n";
+}
 Server::Server(const Server &other)
 {
 	(void)other;
@@ -61,7 +62,166 @@ void Server::init()
 		throw std::runtime_error("Error listen: " + std::string(strerror(errno)));
 		
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
-	
-	//!!ESTO NO VA AQUI PERO POR AHORA ES DONDE FUNCIONA!!!
-	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
+}
+
+void Server::parse_input(Client &client)
+{
+	std::string buf = client.getBuf();
+	if (buf.find("CAP") == 0)
+		std::cout<<"No capabilities available"<<std::endl;
+	if (buf.find("PASS") == 0)
+	{
+		std::cout<<"buff: "<<buf.size()<<std::endl;
+		buf = buf.substr(5, buf.size());
+		std::cout<<"buff: "<<buf;
+		std::cout<<"buff: "<<buf.size()<<std::endl;
+		std::cout<<"pass: "<<_password;
+		if (buf != _password)
+			std::cout<<"Wrong password"<<std::endl;
+		else
+		{
+			std::cout<<"Password accepted: "<<_password<<std::endl;
+			client.setIsAuthenticated(true);
+		}
+	}
+	if (buf.find("NICK") == 0)
+	{
+		buf = buf.substr(5, buf.size());
+		client.setNick(buf);
+		client.setIsRegistered(true);
+	}
+}
+
+void Server::readClientInput(int fd, int i)
+{
+	char buf[256] = {'\0'};
+	// Client &cli = _clients[fd];
+	int nbytes = recv(fd, &buf, sizeof(buf), 0);
+
+	// std::cout<<"nbytes: "<<nbytes<<std::endl;
+	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
+	if (nbytes <= 0){
+		if (nbytes == 0){
+			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
+			_pfd_arr.erase(_pfd_arr.begin() + i);
+			_disconnected_sockets.push_back(_clients[fd].getFd());
+		}
+		else
+			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
+	}
+	else
+	{
+		std::cout<<buf;
+		_clients[fd].setBuf(buf);
+		parse_input(_clients[fd]);
+		std::cout<<_clients[fd].getNick()<<std::endl;
+	}
+}
+
+void Server::accept_clients()
+{
+	// nueva conexión entrante -> accept()
+	struct sockaddr_in client_addr;
+	socklen_t len = sizeof(client_addr);
+	int client_fd = accept(_serv_socket, (struct sockaddr*)&client_addr, &len);
+	if (client_fd < 0)
+	{
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+			std::cerr << "accept error: " << strerror(errno) << std::endl;
+		return;
+	}
+	else if (client_fd >= 0)
+	{
+		_acepted_fds.push_back(client_fd);
+
+		std::cout << "Nueva Conexión" << std::endl;
+	}
+}
+
+void Server::add_clients()
+{
+    for (size_t i = 0; i < _acepted_fds.size(); i++)
+    {
+        int clifd = _acepted_fds[i];
+        struct pollfd pfd = { clifd, POLLIN, 0 };
+        _pfd_arr.push_back(pfd);
+        _clients.insert(std::make_pair(clifd, Client(clifd)));
+    }
+    _acepted_fds.clear();
+
+}
+
+
+void Server::disconnect_clients()
+{
+	  for (size_t i = 0; i < _disconnected_sockets.size(); i++)
+    {
+        std::vector<struct pollfd>::iterator it = _pfd_arr.begin();
+        while (it != _pfd_arr.end())
+        {
+            if (_disconnected_sockets[i] == it->fd)
+            {
+                close(it->fd);
+                _clients.erase(it -> fd);
+                it = _pfd_arr.erase(it);
+                break;
+            }
+            it++;
+        }
+    }
+    _disconnected_sockets.clear();
+}
+
+void Server::pollLoop()
+{
+	int j = 0;
+	while (j == 0)
+	{
+		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
+		if (ready < 0) /* manejar error, ojo con EINTR */ 
+		{
+			if (errno != EINTR)
+				std::cerr << "poll error: " << strerror(errno) << std::endl;
+			break;
+		}
+		for (size_t i = 0; i < _pfd_arr.size(); i++)
+		{
+			if (_pfd_arr[i].revents & (POLLIN))
+			{
+				if (_pfd_arr[i].fd == _serv_socket) // si nosotros somos el listener, es una nueva conexion
+				{
+					accept_clients();
+				}
+				else
+				{
+					try
+					{
+						readClientInput(_pfd_arr[i].fd, i);
+					}
+					catch(const std::exception& e)
+					{
+						std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+						_disconnected_sockets.push_back(_pfd_arr[i].fd);
+					}
+					
+				}
+			}
+			else if (_pfd_arr[i].revents & (POLLERR | POLLNVAL  | POLLHUP))
+            {
+                std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+				// _pfd_arr.erase(_pfd_arr.begin() + i);
+				_disconnected_sockets.push_back(_pfd_arr[i].fd);
+				//desconectar y cerrar lo que corresponda
+            }
+			
+		}
+		if (_acepted_fds.size() > 0)
+			add_clients();
+		if (_disconnected_sockets.size() > 0)
+			disconnect_clients();
+	}
+}
+
+void Server::end(){
+	freeaddrinfo(_addrLst);
 }
