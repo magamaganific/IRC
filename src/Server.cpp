@@ -17,7 +17,7 @@ Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
 {
-	_password = _password + "\n";
+	_password = _password + "\r\n";
 }
 Server::Server(const Server &other)
 {
@@ -75,7 +75,11 @@ void Server::parse_input(Client &client)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		buf = buf.substr(5, buf.size() - 2);
+		std::cout<<"buff: "<<buf.size()<<std::endl;
+		buf = buf.substr(5, buf.size());
+		std::cout<<"buff: "<<buf;
+		std::cout<<"buff: "<<buf.size()<<std::endl;
+		std::cout<<"pass: "<<_password;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
@@ -114,6 +118,7 @@ void Server::readClientInput(int fd, int i)
 		std::cout<<buf;
 		_clients[fd].setBuf(buf);
 		parse_input(_clients[fd]);
+		std::cout<<_clients[fd].getNick()<<std::endl;
 	}
 }
 
