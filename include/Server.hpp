@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/16 13:00:38 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/21 12:42:03 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,9 @@ class Server
         int							_serv_socket;
         struct addrinfo				*_addrLst; // lista enlazada de `sockaddr` de algún tipo que podremos utilizar más adelante
 		std::vector<struct pollfd>	_pfd_arr;
+		std::map<int, Client>		_clients;
+		std::vector<int>			_acepted_fds;
+		std::vector<int>			_disconnected_sockets;
 		
 	public:
 		Server();
@@ -49,8 +52,10 @@ class Server
 		Server &operator=(const Server &other);
 		std::string get_port();
 		void init();
+		void end();
 		void pollLoop();
-		void parse_input(std::string buf);
+		void readClientInput(int fd, int i);
+		void parse_input(Client &client);
 		~Server();
 };
 

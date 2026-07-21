@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/16 16:01:47 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/21 12:45:09 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@
 Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
-{}
+{
+	_password = _password + "\r\n";
+}
 Server::Server(const Server &other)
 {
 	(void)other;
@@ -63,25 +65,79 @@ void Server::init()
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
 	
 	//!!ESTO NO VA AQUI PERO POR AHORA ES DONDE FUNCIONA!!!
-	freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
+	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
-void Server::parse_input(std::string buf)
+// void Server::parse_input(std::string buf)
+// {
+// 	if (buf.find("REG") == 0)
+// 		std::cout<<"Registration started, please enter: password, nickname and name"<<std::endl;
+// 	if (buf.find("PASS") == 0)
+// 	{
+// 		if (sscanf((buf.c_str()), "PASS %s", (char *)_password.c_str()) != 1)
+// 			std::cout<<"Wrong password"<<std::endl;
+// 		else
+// 			std::cout<<"Password accepted: "<<_password<<std::endl;
+// 	}
+// 	if (buf.find("NICK") == 0)
+// 	{
+// 		// std::cout<<buf;
+// 		buf = buf.substr(5, buf.size());
+// 		std::cout<< buf;
+// 	}
+// }
+
+void Server::parse_input(Client &client)
 {
-	if (buf.find("REG") == 0)
-		std::cout<<"Registration started, please enter: password, nickname and name"<<std::endl;
+	std::string buf = client.getBuf();
+	if (buf.find("CAP") == 0)
+		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		if (sscanf((buf.c_str()), "PASS %s", (char *)_password.c_str()) != 1)
+		std::cout<<"buff: "<<buf.size()<<std::endl;
+		buf = buf.substr(5, buf.size());
+		std::cout<<"buff: "<<buf;
+		std::cout<<"buff: "<<buf.size()<<std::endl;
+		std::cout<<"pass: "<<_password;
+		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
+		{
 			std::cout<<"Password accepted: "<<_password<<std::endl;
+			client.setIsAuthenticated(true);
+		}
 	}
 	if (buf.find("NICK") == 0)
 	{
-		// std::cout<<buf;
 		buf = buf.substr(5, buf.size());
-		std::cout<< buf;
+		client.setNick(buf);
+		client.setIsRegistered(true);
+	}
+}
+
+void Server::readClientInput(int fd, int i)
+{
+	char buf[256] = {'\0'};
+	// Client &cli = _clients[fd];
+	int nbytes = recv(fd, &buf, sizeof(buf), 0);
+
+	// std::cout<<"nbytes: "<<nbytes<<std::endl;
+	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
+	if (nbytes <= 0){
+		if (nbytes == 0){
+			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
+			_pfd_arr.erase(_pfd_arr.begin() + i);
+			_disconnected_sockets.push_back(_clients[fd].getFd());
+		}
+		else
+			throw std::runtime_error("recv error: " + std::string(strerror(errno)));
+	}
+	else
+	{
+		std::cout<<buf;
+		_clients[fd].setBuf(buf);
+		parse_input(_clients[fd]);
+		std::cout<<_clients[fd].getNick()<<std::endl;
 	}
 }
 
@@ -122,31 +178,33 @@ void Server::pollLoop()
 						return;
 					}
 					else if (client_fd >= 0)
-					{
-						_pfd_arr.push_back((pollfd){client_fd, POLLIN, 0});
-					}
+						_acepted_fds.push_back(client_fd);
+					std::cout << "Nueva Conexión" << std::endl;
 				}
 				else
 				{
 					//manejar cuando algun fd de cliente tiene algo que decir
 					try
 					{
-						char buffer[256] = { 0 };
-						ssize_t n_bytes = recv(_pfd_arr[i].fd, buffer, sizeof(buffer), 0);
-						if (n_bytes < 0)
-						{
-							std::cerr << "recv error: " << strerror(errno) << std::endl;
-						}
-						else if (n_bytes == 0)
-						{
-							std::cout << "Client on socket " << _pfd_arr[i].fd << std::endl;
-							_pfd_arr.erase(_pfd_arr.begin() + i);
-						}
-						else if (n_bytes > 0)
-						{
-							std::cout<<buffer;
-							parse_input(buffer);
-						}
+						readClientInput(_pfd_arr[i].fd, i);
+						// datos de un cliente existente -> recv()
+						// std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
+						// char buffer[256] = { 0 };
+						// ssize_t n_bytes = recv(_pfd_arr[i].fd, buffer, sizeof(buffer), 0);
+						// if (n_bytes < 0)
+						// {
+						// 	std::cerr << "recv error: " << strerror(errno) << std::endl;
+						// }
+						// else if (n_bytes == 0)
+						// {
+						// 	std::cout << "Client on socket " << _pfd_arr[i].fd << std::endl;
+						// 	_pfd_arr.erase(_pfd_arr.begin() + i);
+						// }
+						// else if (n_bytes > 0)
+						// {
+						// 	std::cout<<buffer;
+						// 	parse_input(buffer);
+						// }
 					}
 					catch(const std::exception& e)
 					{
@@ -158,8 +216,33 @@ void Server::pollLoop()
 			else if (_pfd_arr[i].revents & (POLLERR | POLLHUP | POLLNVAL))
             {
                 std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+				// _pfd_arr.erase(_pfd_arr.begin() + i);
+				std::vector<struct pollfd>::iterator it = _pfd_arr.begin() + i;
+				std::cerr<<"socket: "<<it->fd<<std::endl;
 				//desconectar y cerrar lo que corresponda
             }
 		}
+		if (_acepted_fds.size() > 0)
+		{
+			int clifd = _acepted_fds[0];
+			// Client client(clifd);
+			_clients.insert(std::make_pair(clifd, Client(clifd)));
+			_pfd_arr.push_back((pollfd){clifd, POLLIN, 0});
+			std::cout<<"pfd_arr: "<<_pfd_arr[1].fd<<std::endl;
+			_acepted_fds.clear();
+			// std::cout<<client_fd<<std::endl;
+			// std::cout<<"client_fd: "<<clifd<<std::endl;
+			// std::cout<<"client fd: "<<client.getFd()<<std::endl;
+			// std::cout<<"first fd in clients: "<<_clients.begin()->second.getFd()<<std::endl<<std::endl;
+			// std::cout<<"last fd in clients: "<<_clients.end()->second.getFd()<<std::endl<<std::endl;
+		}
+		if (_disconnected_sockets.size() > 0)
+		{
+			close(_disconnected_sockets[0]);
+			_disconnected_sockets.clear();
+		}
 	}
+}
+void Server::end(){
+	freeaddrinfo(_addrLst);
 }

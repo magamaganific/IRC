@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 12:24:38 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/13 17:02:58 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/21 12:17:10 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ int main (int argc, char **argv)
         Server server(argv[1], argv[2]);
         server.init();
         server.pollLoop();
+        server.end();
     }
     catch(const std::exception& e)
     {
