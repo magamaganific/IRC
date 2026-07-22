@@ -31,7 +31,7 @@ public:
 	bool		getIsRegistered();
 	bool		getIsAuthenticated();
 	int getFd() const;
-	void sendMsg(std::string msg);
+	void MsgToMe(std::string msg);
 };
 
 #endif

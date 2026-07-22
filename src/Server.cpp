@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/21 15:44:06 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/22 17:40:10 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,11 +134,9 @@ void Server::readClientInput(int fd, int i)
 	}
 	else
 	{
-		std::cout<<buf;
 		_clients[fd].setBuf(buf);
 		parse_input(_clients[fd]);
-		std::cout<<_clients[fd].getNick()<<std::endl;
-		_clients[fd].sendMsg(_clients[fd].getBuf());
+		std::cout<<_clients[fd].getNick()<< ":" << _clients[fd].getBuf();
 	}
 }
 
@@ -229,7 +227,7 @@ void Server::pollLoop()
 			// Client client(clifd);
 			_clients.insert(std::make_pair(clifd, Client(clifd)));
 			_pfd_arr.push_back((pollfd){clifd, POLLIN, 0});
-			std::cout<<"pfd_arr: "<<_pfd_arr[1].fd<<std::endl;
+			//std::cout<<"pfd_arr: "<<_pfd_arr[1].fd<<std::endl;
 			_acepted_fds.clear();
 			// std::cout<<client_fd<<std::endl;
 			// std::cout<<"client_fd: "<<clifd<<std::endl;
@@ -244,6 +242,26 @@ void Server::pollLoop()
 		}
 	}
 }
+
+//Esta es la funcion que manda al fd que le pases el msg <std::string>
+void Server::SendMsg(int fd, std::string msg)
+{
+    if (msg.length() > 510)
+        msg.erase(510);
+    std::cout << fd << " " << msg << "\n";
+    msg += "\r\n";
+
+    ssize_t total = 0;
+    ssize_t length = static_cast<ssize_t>(msg.size());
+    while (total < length)
+    {
+        ssize_t n_bytes = send(fd, msg.c_str() + total, length - total, 0);
+        if (n_bytes < 0)
+            throw std::runtime_error(strerror(errno));
+        total += n_bytes;
+    }
+}
 void Server::end(){
 	freeaddrinfo(_addrLst);
 }
+

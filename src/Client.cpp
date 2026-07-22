@@ -72,7 +72,8 @@ int Client::getFd() const{
 	return(_fd);
 }
 
-void Client::sendMsg(std::string msg)
+//Espero que este sea util al final. Envia el <std::string msg> al fd del cliente.
+void Client::MsgToMe(std::string msg)
 {
     if (msg.length() > 510)
         msg.erase(510);

@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/21 12:42:03 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/22 17:20:29 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ class Server
 		void pollLoop();
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
+		void SendMsg(int fd, std::string msg);
 		~Server();
 };
 
