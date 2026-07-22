@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/13 16:52:44 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/21 13:30:11 by dgargantill      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,9 @@ class Server
 		void init();
 		void end();
 		void pollLoop();
+		void accept_clients();
+		void add_clients();
+		void disconnect_clients();
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
 		~Server();

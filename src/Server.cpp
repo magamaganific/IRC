@@ -3,13 +3,12 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/13 18:00:43 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/21 13:34:55 by dgargantill      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 # include "Server.hpp"
 
@@ -65,9 +64,6 @@ void Server::init()
 		throw std::runtime_error("Error listen: " + std::string(strerror(errno)));
 		
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
-	
-	//!!ESTO NO VA AQUI PERO POR AHORA ES DONDE FUNCIONA!!!
-	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
 }
 
 void Server::parse_input(Client &client)
@@ -148,6 +144,60 @@ void Server::readClientInput(int fd, int i)
 	}
 }
 
+void Server::accept_clients()
+{
+	// nueva conexión entrante -> accept()
+	struct sockaddr_in client_addr;
+	socklen_t len = sizeof(client_addr);
+	int client_fd = accept(_serv_socket, (struct sockaddr*)&client_addr, &len);
+	if (client_fd < 0)
+	{
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+			std::cerr << "accept error: " << strerror(errno) << std::endl;
+		return;
+	}
+	else if (client_fd >= 0)
+	{
+		_acepted_fds.push_back(client_fd);
+
+		std::cout << "Nueva Conexión" << std::endl;
+	}
+}
+
+void Server::add_clients()
+{
+    for (size_t i = 0; i < _acepted_fds.size(); i++)
+    {
+        int clifd = _acepted_fds[i];
+        struct pollfd pfd = { clifd, POLLIN, 0 };
+        _pfd_arr.push_back(pfd);
+        _clients.insert(std::make_pair(clifd, Client(clifd)));
+    }
+    _acepted_fds.clear();
+
+}
+
+
+void Server::disconnect_clients()
+{
+	  for (size_t i = 0; i < _disconnected_sockets.size(); i++)
+    {
+        std::vector<struct pollfd>::iterator it = _pfd_arr.begin();
+        while (it != _pfd_arr.end())
+        {
+            if (_disconnected_sockets[i] == it->fd)
+            {
+                close(it->fd);
+                _clients.erase(it -> fd);
+                it = _pfd_arr.erase(it);
+                break;
+            }
+            it++;
+        }
+    }
+    _disconnected_sockets.clear();
+}
+
 void Server::pollLoop()
 {
 	int j = 0;
@@ -166,32 +216,18 @@ void Server::pollLoop()
 			{
 				if (_pfd_arr[i].fd == _serv_socket) // si nosotros somos el listener, es una nueva conexion
 				{
-					// nueva conexión entrante -> accept()
-					struct sockaddr_in client_addr;
-					socklen_t len = sizeof(client_addr);
-					int client_fd = accept(_serv_socket, (struct sockaddr*)&client_addr, &len);
-					if (client_fd < 0)
-					{
-						if (errno != EAGAIN && errno != EWOULDBLOCK)
-						std::cerr << "accept error: " << strerror(errno) << std::endl;
-						return;
-					}
-					else if (client_fd > 0)
-						_acepted_fds.push_back(client_fd);
-					std::cout << "Nueva Conexión" << std::endl;
+					accept_clients();
 				}
 				else
 				{
 					try
 					{
 						readClientInput(_pfd_arr[i].fd, i);
-						// datos de un cliente existente -> recv()
-						// std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
 					}
 					catch(const std::exception& e)
 					{
 						std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
-						
+						_disconnected_sockets.push_back(_pfd_arr[i].fd);
 					}
 					
 				}
@@ -200,31 +236,15 @@ void Server::pollLoop()
             {
                 std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
 				// _pfd_arr.erase(_pfd_arr.begin() + i);
-				std::vector<struct pollfd>::iterator it = _pfd_arr.begin() + i;
-				std::cerr<<"socket: "<<it->fd<<std::endl;
+				_disconnected_sockets.push_back(_pfd_arr[i].fd);
 				//desconectar y cerrar lo que corresponda
             }
 			
 		}
 		if (_acepted_fds.size() > 0)
-		{
-			int clifd = _acepted_fds[0];
-			// Client client(clifd);
-			_clients.insert(std::make_pair(clifd, Client(clifd)));
-			_pfd_arr.push_back((pollfd){clifd, POLLIN, 0});
-			std::cout<<"pfd_arr: "<<_pfd_arr[1].fd<<std::endl;
-			_acepted_fds.clear();
-			// std::cout<<client_fd<<std::endl;
-			// std::cout<<"client_fd: "<<clifd<<std::endl;
-			// std::cout<<"client fd: "<<client.getFd()<<std::endl;
-			// std::cout<<"first fd in clients: "<<_clients.begin()->second.getFd()<<std::endl<<std::endl;
-			// std::cout<<"last fd in clients: "<<_clients.end()->second.getFd()<<std::endl<<std::endl;
-		}
+			add_clients();
 		if (_disconnected_sockets.size() > 0)
-		{
-			close(_disconnected_sockets[0]);
-			_disconnected_sockets.clear();
-		}
+			disconnect_clients();
 	}
 }
 
