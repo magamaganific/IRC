@@ -16,18 +16,19 @@
 Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
-{
-	_password = _password + "\r\n";
-}
+{}
+
 Server::Server(const Server &other)
 {
 	(void)other;
 }
+
 Server &Server::operator=(const Server &other)
 {
 	(void)other;
 	return (*this);
 }
+
 std::string Server::get_port()
 {
 	return (this->_port);
@@ -35,6 +36,7 @@ std::string Server::get_port()
 
 Server::~Server()
 {}
+
 void Server::init()
 {
 	struct addrinfo	hints;
@@ -77,9 +79,9 @@ void Server::parse_input(Client &client)
 	{
 		std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
-		std::cout<<"buff: "<<buf;
+		std::cout<<"buff: "<<buf<<std::endl;
 		std::cout<<"buff: "<<buf.size()<<std::endl;
-		std::cout<<"pass: "<<_password;
+		std::cout<<"pass: "<<_password<<std::endl;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
@@ -90,9 +92,27 @@ void Server::parse_input(Client &client)
 	}
 	if (buf.find("NICK") == 0)
 	{
-		buf = buf.substr(5, buf.size());
-		client.setNick(buf);
-		client.setIsRegistered(true);
+		if (client.getIsAuthenticated() == false){
+			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+			//send it to the client
+		}
+		else{
+			buf = buf.substr(5, buf.size());
+			client.setNick(buf);
+			client.setIsRegistered(true);
+		}
+	}
+	if (buf.find("USER") == 0)
+	{
+		if (client.getIsAuthenticated() == false){
+			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+			//send it to the client
+		}
+		else{
+			buf = buf.substr(6, buf.size());
+			client.setName(buf);
+			client.setIsRegistered(true);
+		}
 	}
 }
 
@@ -117,7 +137,13 @@ void Server::readClientInput(int fd, int i)
 	{
 		std::cout<<buf;
 		_clients[fd].setBuf(buf);
-		parse_input(_clients[fd]);
+		size_t pos;
+		while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
+			std::string line = _clients[fd].getBuf().substr(0, pos);
+			_clients[fd].getBuf().erase(0, pos + 2);
+			_clients[fd].setBuf((char *)line.c_str());
+			parse_input(_clients[fd]);
+		}
 		std::cout<<_clients[fd].getNick()<<std::endl;
 	}
 }
