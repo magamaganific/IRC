@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/21 12:45:09 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/21 15:44:06 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,11 +94,11 @@ void Server::parse_input(Client &client)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		std::cout<<"buff: "<<buf.size()<<std::endl;
+		//std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
-		std::cout<<"buff: "<<buf;
-		std::cout<<"buff: "<<buf.size()<<std::endl;
-		std::cout<<"pass: "<<_password;
+		//std::cout<<"buff: "<<buf;
+		//std::cout<<"buff: "<<buf.size()<<std::endl;
+		//std::cout<<"pass: "<<_password;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
@@ -138,6 +138,7 @@ void Server::readClientInput(int fd, int i)
 		_clients[fd].setBuf(buf);
 		parse_input(_clients[fd]);
 		std::cout<<_clients[fd].getNick()<<std::endl;
+		_clients[fd].sendMsg(_clients[fd].getBuf());
 	}
 }
 
