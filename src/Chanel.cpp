@@ -6,7 +6,7 @@ Chanel::Chanel()
 }
 
 Chanel::Chanel(std::string name, std::string pass, int admin)
-: _chanel_name(name), _chanel_pass(pass), _topic(""), _limit(0)
+: _chanel_name(name), _topic(""), _chanel_pass(pass), _limit(0)
 {
 	addAdmin(admin);
 	addMember(admin);
@@ -14,8 +14,8 @@ Chanel::Chanel(std::string name, std::string pass, int admin)
 
 
 Chanel::Chanel(const Chanel &obj)
-: _chanel_name(obj._chanel_name), _chanel_pass(obj._chanel_pass),
-_topic(obj._topic), _limit(obj._limit), _admins(obj._admins), _members(obj._members),
+: _chanel_name(obj._chanel_name), _topic(obj._topic),
+_chanel_pass(obj._chanel_pass), _limit(obj._limit), _admins(obj._admins), _members(obj._members),
 _guests(obj._guests)
 {}
 
