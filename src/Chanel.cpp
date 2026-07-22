@@ -2,7 +2,6 @@
 
 Chanel::Chanel()
 {
-
 }
 
 Chanel::Chanel(std::string name, std::string pass, int admin)
@@ -46,7 +45,7 @@ const std::string &Chanel::getChanelTopic() const
 
 const std::string &Chanel::getChanelPass() const
 {
-	return (_chanel_pass)
+	return (_chanel_pass);
 }
 
 const int &Chanel::getLimit() const
@@ -100,7 +99,7 @@ void Chanel::addAdmin(int fd)
 
 void Chanel::addGuest(int fd)
 {
-    for(size_t i = 0; i < _.size(); i++)
+    for(size_t i = 0; i < _guests.size(); i++)
         if(_guests[i] == fd)
             return;
     _guests.push_back(fd);
