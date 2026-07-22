@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 12:24:38 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/21 15:15:20 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/13 17:02:58 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int check_in(char **argv)
     {
         for(size_t i = 0; i < pass.length(); i++)
         {
-            if (pass[i] <= 32 || pass[i] > 127)
+            if (pass[i] <= 32 || pass[i] >= 127)
                 return (0);
         }
     }else

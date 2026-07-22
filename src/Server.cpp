@@ -6,28 +6,28 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/22 17:40:10 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/22 18:07:46 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 # include "Server.hpp"
 
 Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
-{
-	_password = _password + "\r\n";
-}
+{}
+
 Server::Server(const Server &other)
 {
 	(void)other;
 }
+
 Server &Server::operator=(const Server &other)
 {
 	(void)other;
 	return (*this);
 }
+
 std::string Server::get_port()
 {
 	return (this->_port);
@@ -35,6 +35,7 @@ std::string Server::get_port()
 
 Server::~Server()
 {}
+
 void Server::init()
 {
 	struct addrinfo	hints;
@@ -63,29 +64,9 @@ void Server::init()
 		throw std::runtime_error("Error listen: " + std::string(strerror(errno)));
 		
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
-	
-	//!!ESTO NO VA AQUI PERO POR AHORA ES DONDE FUNCIONA!!!
-	//freeaddrinfo(_addrLst); // MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente
+	// MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente:
+	//freeaddrinfo(_addrLst);
 }
-
-// void Server::parse_input(std::string buf)
-// {
-// 	if (buf.find("REG") == 0)
-// 		std::cout<<"Registration started, please enter: password, nickname and name"<<std::endl;
-// 	if (buf.find("PASS") == 0)
-// 	{
-// 		if (sscanf((buf.c_str()), "PASS %s", (char *)_password.c_str()) != 1)
-// 			std::cout<<"Wrong password"<<std::endl;
-// 		else
-// 			std::cout<<"Password accepted: "<<_password<<std::endl;
-// 	}
-// 	if (buf.find("NICK") == 0)
-// 	{
-// 		// std::cout<<buf;
-// 		buf = buf.substr(5, buf.size());
-// 		std::cout<< buf;
-// 	}
-// }
 
 void Server::parse_input(Client &client)
 {
@@ -94,11 +75,11 @@ void Server::parse_input(Client &client)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		//std::cout<<"buff: "<<buf.size()<<std::endl;
+		std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
-		//std::cout<<"buff: "<<buf;
-		//std::cout<<"buff: "<<buf.size()<<std::endl;
-		//std::cout<<"pass: "<<_password;
+		std::cout<<"buff: "<<buf<<std::endl;
+		std::cout<<"buff: "<<buf.size()<<std::endl;
+		std::cout<<"pass: "<<_password<<std::endl;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
@@ -109,9 +90,27 @@ void Server::parse_input(Client &client)
 	}
 	if (buf.find("NICK") == 0)
 	{
-		buf = buf.substr(5, buf.size());
-		client.setNick(buf);
-		client.setIsRegistered(true);
+		if (client.getIsAuthenticated() == false){
+			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+			//send it to the client
+		}
+		else{
+			buf = buf.substr(5, buf.size());
+			client.setNick(buf);
+			client.setIsRegistered(true);
+		}
+	}
+	if (buf.find("USER") == 0)
+	{
+		if (client.getIsAuthenticated() == false){
+			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+			//send it to the client
+		}
+		else{
+			buf = buf.substr(6, buf.size());
+			client.setName(buf);
+			client.setIsRegistered(true);
+		}
 	}
 }
 
@@ -134,22 +133,75 @@ void Server::readClientInput(int fd, int i)
 	}
 	else
 	{
+		std::cout<<buf;
 		_clients[fd].setBuf(buf);
-		parse_input(_clients[fd]);
-		std::cout<<_clients[fd].getNick()<< ":" << _clients[fd].getBuf();
+		size_t pos;
+		while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
+			std::string line = _clients[fd].getBuf().substr(0, pos);
+			_clients[fd].getBuf().erase(0, pos + 2);
+			_clients[fd].setBuf((char *)line.c_str());
+			parse_input(_clients[fd]);
+		}
+		std::cout<<_clients[fd].getNick()<<std::endl;
 	}
 }
 
-void func ( int sigaction )
+void Server::accept_clients()
 {
-	(void)sigaction;
-	
+	// nueva conexión entrante -> accept()
+	struct sockaddr_in client_addr;
+	socklen_t len = sizeof(client_addr);
+	int client_fd = accept(_serv_socket, (struct sockaddr*)&client_addr, &len);
+	if (client_fd < 0)
+	{
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+			std::cerr << "accept error: " << strerror(errno) << std::endl;
+		return;
+	}
+	else if (client_fd >= 0)
+	{
+		_acepted_fds.push_back(client_fd);
+
+		std::cout << "Nueva Conexión" << std::endl;
+	}
+}
+
+void Server::add_clients()
+{
+    for (size_t i = 0; i < _acepted_fds.size(); i++)
+    {
+        int clifd = _acepted_fds[i];
+        struct pollfd pfd = { clifd, POLLIN, 0 };
+        _pfd_arr.push_back(pfd);
+        _clients.insert(std::make_pair(clifd, Client(clifd)));
+    }
+    _acepted_fds.clear();
+
+}
+
+
+void Server::disconnect_clients()
+{
+	  for (size_t i = 0; i < _disconnected_sockets.size(); i++)
+    {
+        std::vector<struct pollfd>::iterator it = _pfd_arr.begin();
+        while (it != _pfd_arr.end())
+        {
+            if (_disconnected_sockets[i] == it->fd)
+            {
+                close(it->fd);
+                _clients.erase(it -> fd);
+                it = _pfd_arr.erase(it);
+                break;
+            }
+            it++;
+        }
+    }
+    _disconnected_sockets.clear();
 }
 
 void Server::pollLoop()
 {
-	signal(SIGINT, func );
-	signal(SIGPIPE, SIG_IGN);
 	while (true)
 	{
 		std::cout << _pfd_arr.size() - 1 << " connected clients. Waiting for events..." << std::endl;
@@ -160,86 +212,41 @@ void Server::pollLoop()
 				std::cerr << "poll error: " << strerror(errno) << std::endl;
 			break;
 		}
-		for (size_t i = 0; i < _pfd_arr.size(); ++i)
+		for (size_t i = 0; i < _pfd_arr.size(); i++)
 		{
-			if (_pfd_arr[i].revents & POLLIN)
+			if (_pfd_arr[i].revents & (POLLIN))
 			{
 				if (_pfd_arr[i].fd == _serv_socket) // si nosotros somos el listener, es una nueva conexion
 				{
-					// nueva conexión entrante -> accept()
-					struct sockaddr_in client_addr;
-					socklen_t len = sizeof(client_addr);
-					int client_fd = accept(_serv_socket, (struct sockaddr*)&client_addr, &len);
-					if (client_fd < 0)
-					{
-						if (errno != EAGAIN && errno != EWOULDBLOCK)
-							std::cerr << "accept error: " << strerror(errno) << std::endl;
-						return;
-					}
-					else if (client_fd >= 0)
-						_acepted_fds.push_back(client_fd);
-					std::cout << "Nueva Conexión" << std::endl;
+					accept_clients();
 				}
 				else
 				{
-					//manejar cuando algun fd de cliente tiene algo que decir
 					try
 					{
 						readClientInput(_pfd_arr[i].fd, i);
-						// datos de un cliente existente -> recv()
-						// std::cout << "ESAMOS ESCRIBIENDO" << std::endl;
-						// char buffer[256] = { 0 };
-						// ssize_t n_bytes = recv(_pfd_arr[i].fd, buffer, sizeof(buffer), 0);
-						// if (n_bytes < 0)
-						// {
-						// 	std::cerr << "recv error: " << strerror(errno) << std::endl;
-						// }
-						// else if (n_bytes == 0)
-						// {
-						// 	std::cout << "Client on socket " << _pfd_arr[i].fd << std::endl;
-						// 	_pfd_arr.erase(_pfd_arr.begin() + i);
-						// }
-						// else if (n_bytes > 0)
-						// {
-						// 	std::cout<<buffer;
-						// 	parse_input(buffer);
-						// }
 					}
 					catch(const std::exception& e)
 					{
 						std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
+						_disconnected_sockets.push_back(_pfd_arr[i].fd);
 					}
 					
 				}
 			}
-			else if (_pfd_arr[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+			else if (_pfd_arr[i].revents & (POLLERR | POLLNVAL  | POLLHUP))
             {
                 std::cerr << "There was an error on socket " << _pfd_arr[i].fd << std::endl;
 				// _pfd_arr.erase(_pfd_arr.begin() + i);
-				std::vector<struct pollfd>::iterator it = _pfd_arr.begin() + i;
-				std::cerr<<"socket: "<<it->fd<<std::endl;
+				_disconnected_sockets.push_back(_pfd_arr[i].fd);
 				//desconectar y cerrar lo que corresponda
             }
+			
 		}
 		if (_acepted_fds.size() > 0)
-		{
-			int clifd = _acepted_fds[0];
-			// Client client(clifd);
-			_clients.insert(std::make_pair(clifd, Client(clifd)));
-			_pfd_arr.push_back((pollfd){clifd, POLLIN, 0});
-			//std::cout<<"pfd_arr: "<<_pfd_arr[1].fd<<std::endl;
-			_acepted_fds.clear();
-			// std::cout<<client_fd<<std::endl;
-			// std::cout<<"client_fd: "<<clifd<<std::endl;
-			// std::cout<<"client fd: "<<client.getFd()<<std::endl;
-			// std::cout<<"first fd in clients: "<<_clients.begin()->second.getFd()<<std::endl<<std::endl;
-			// std::cout<<"last fd in clients: "<<_clients.end()->second.getFd()<<std::endl<<std::endl;
-		}
+			add_clients();
 		if (_disconnected_sockets.size() > 0)
-		{
-			close(_disconnected_sockets[0]);
-			_disconnected_sockets.clear();
-		}
+			disconnect_clients();
 	}
 }
 
@@ -261,7 +268,7 @@ void Server::SendMsg(int fd, std::string msg)
         total += n_bytes;
     }
 }
+
 void Server::end(){
 	freeaddrinfo(_addrLst);
 }
-

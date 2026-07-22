@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/22 17:20:29 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/07/22 17:59:33 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
  #define SERVER_HPP
 
 # include <iostream>
+# include <fstream>
 # include <cstring>
 # include <cstdio>
 # include <sstream>
@@ -27,9 +28,7 @@
 # include <errno.h>
 # include <vector>
 # include <map>
-# include <signal.h>
 # include <unistd.h>
-# include <iostream>
 # include "Client.hpp"
 
 
@@ -54,6 +53,9 @@ class Server
 		void init();
 		void end();
 		void pollLoop();
+		void accept_clients();
+		void add_clients();
+		void disconnect_clients();
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
 		void SendMsg(int fd, std::string msg);
