@@ -16,7 +16,7 @@ private:
 	std::string         _chanel_pass;
 	// chanel_type (si es tipo invite solo puedes entrar por invitacion)
 	// limite de usuarios (limitado o indefinido)
-	id_t				_limit;
+	int				_limit;
 	// array de admins
 	std::vector<int>    _admins;
 	// array de usuaros (presentes en el canal)
