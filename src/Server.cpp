@@ -73,11 +73,7 @@ void Server::parse_input(Client &client)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
-		std::cout<<"buff: "<<buf<<std::endl;
-		std::cout<<"buff: "<<buf.size()<<std::endl;
-		std::cout<<"pass: "<<_password<<std::endl;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
@@ -90,7 +86,6 @@ void Server::parse_input(Client &client)
 	{
 		if (client.getIsAuthenticated() == false){
 			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
-			//send it to the client
 		}
 		else{
 			buf = buf.substr(5, buf.size());
@@ -102,7 +97,6 @@ void Server::parse_input(Client &client)
 	{
 		if (client.getIsAuthenticated() == false){
 			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
-			//send it to the client
 		}
 		else{
 			buf = buf.substr(6, buf.size());
@@ -115,11 +109,8 @@ void Server::parse_input(Client &client)
 void Server::readClientInput(int fd, int i)
 {
 	char buf[256] = {'\0'};
-	// Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	// std::cout<<"nbytes: "<<nbytes<<std::endl;
-	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
 	if (nbytes <= 0){
 		if (nbytes == 0){
 			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
@@ -131,7 +122,6 @@ void Server::readClientInput(int fd, int i)
 	}
 	else
 	{
-		std::cout<<buf;
 		_clients[fd].setBuf(buf);
 		size_t pos;
 		while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
@@ -140,7 +130,6 @@ void Server::readClientInput(int fd, int i)
 			_clients[fd].setBuf((char *)line.c_str());
 			parse_input(_clients[fd]);
 		}
-		std::cout<<_clients[fd].getNick()<<std::endl;
 	}
 }
 

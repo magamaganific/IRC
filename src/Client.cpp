@@ -7,12 +7,14 @@ Client::Client(){
 
 Client::Client(int fd)
 :_fd(fd), _nick(""), _name(""),
+_realname(""), _hostname(""),
 _isRegistered(false), _isAuthenticated(false),
 _isOperator(false), _buf(""){
 }
 
 Client::Client(const Client &old)
 : _fd(old._fd), _nick(old._nick), _name(old._name),
+_realname(old._realname), _hostname(old._hostname),
 _isRegistered(old._isRegistered), _isAuthenticated(old._isAuthenticated),
 _isOperator(old._isOperator), _buf(old._buf){
 }
@@ -23,6 +25,8 @@ Client &Client::operator=(const Client &old){
 		this->_fd = old._fd;
 		this->_nick = old._nick;
 		this->_name = old._name;
+		this->_realname = old._realname;
+		this->_hostname = old._hostname;
 		this->_isRegistered = old._isRegistered;
 		this->_isAuthenticated = old._isAuthenticated;
 		this->_isOperator = old._isOperator;
@@ -38,6 +42,14 @@ void Client::setName(std::string name){
 
 void Client::setNick(std::string nick){
 	this->_nick = nick;
+}
+
+void Client::setReal(std::string realname){
+	this->_realname = realname;
+}
+
+void Client::setHost(std::string hostname){
+	this->_hostname = hostname;
 }
 
 void Client::setBuf(char *buf){
@@ -62,6 +74,14 @@ std::string Client::getName(){
 
 std::string Client::getNick(){
 	return(_nick);
+}
+
+std::string Client::getReal(){
+	return(_realname);
+}
+
+std::string Client::getHost(){
+	return(_hostname);
 }
 
 std::string Client::getBuf(){
