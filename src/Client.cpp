@@ -40,6 +40,14 @@ void Client::setNick(std::string nick){
 	this->_nick = nick;
 }
 
+void Client::setReal(std::string real){
+	this->_realname = real;
+}
+
+void Client::setHost(std::string host){
+	this->_hostname = host;
+}
+
 void Client::setBuf(char *buf){
 	this->_buf = buf;
 }
@@ -62,6 +70,14 @@ std::string Client::getName(){
 
 std::string Client::getNick(){
 	return(_nick);
+}
+
+std::string Client::getReal(){
+	return(_realname);
+}
+
+std::string Client::getHost(){
+	return(_hostname);
 }
 
 std::string Client::getBuf(){
