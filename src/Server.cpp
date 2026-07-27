@@ -69,6 +69,7 @@ void Server::init()
 void Server::parse_input(Client &client)
 {
 	std::string buf = client.getBuf();
+	std::cout<<"Client buf: "<<buf<<std::endl;
 	if (buf.find("CAP") == 0)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
@@ -76,7 +77,7 @@ void Server::parse_input(Client &client)
 		std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
 		std::cout<<"buff: "<<buf<<std::endl;
-		std::cout<<"buff: "<<buf.size()<<std::endl;
+		std::cout<<"buff size: "<<buf.size()<<std::endl;
 		std::cout<<"pass: "<<_password<<std::endl;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
@@ -118,8 +119,8 @@ void Server::readClientInput(int fd, int i)
 	// Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	// std::cout<<"nbytes: "<<nbytes<<std::endl;
-	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
+	std::cout<<"nbytes: "<<nbytes<<std::endl;
+	std::cout<<"cli.getFd(): "<<_clients[fd].getFd()<<std::endl;
 	if (nbytes <= 0){
 		if (nbytes == 0){
 			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
@@ -131,16 +132,29 @@ void Server::readClientInput(int fd, int i)
 	}
 	else
 	{
-		std::cout<<buf;
+		std::cout<<"original buffer:"<<buf;
 		_clients[fd].setBuf(buf);
 		size_t pos;
-		while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
-			std::string line = _clients[fd].getBuf().substr(0, pos);
-			_clients[fd].getBuf().erase(0, pos + 2);
-			_clients[fd].setBuf((char *)line.c_str());
-			parse_input(_clients[fd]);
+		if ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
+			while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
+				std::string line = _clients[fd].getBuf().substr(0, pos);
+				_clients[fd].getBuf().erase(0, pos + 2);
+				_clients[fd].setBuf((char *)line.c_str());
+				parse_input(_clients[fd]);
+			}
 		}
-		std::cout<<_clients[fd].getNick()<<std::endl;
+		else if ((pos = _clients[fd].getBuf().find("\n")) != std::string::npos){
+			while ((pos = _clients[fd].getBuf().find("\n")) != std::string::npos){
+				std::string line = _clients[fd].getBuf().substr(0, pos);
+				_clients[fd].getBuf().erase(0, pos + 1);
+				_clients[fd].setBuf((char *)line.c_str());
+				parse_input(_clients[fd]);
+			}
+		}
+		else
+			parse_input(_clients[fd]);
+		std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
+		std::cout<<"NAME: "<<_clients[fd].getName()<<std::endl;
 	}
 }
 
@@ -160,7 +174,7 @@ void Server::accept_clients()
 	{
 		_acepted_fds.push_back(client_fd);
 
-		std::cout << "Nueva Conexión" << std::endl;
+		std::cout << "Nueva Conexion" << std::endl;
 	}
 }
 
