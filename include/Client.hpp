@@ -25,8 +25,6 @@ public:
 
 	void setName(std::string name);
 	void setNick(std::string nick);
-	void setReal(std::string realname);
-	void setHost(std::string hostname);
 	void setBuf(char *buf);
 	void setIsRegistered(bool tof);
 	void setIsAuthenticated(bool tof);
@@ -34,8 +32,6 @@ public:
 
 	std::string getName();
 	std::string getNick();
-	std::string getReal();
-	std::string getHost();
 	std::string getBuf();
 	bool		getIsRegistered();
 	bool		getIsAuthenticated();
