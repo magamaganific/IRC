@@ -66,6 +66,34 @@ void Server::init()
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
 }
 
+bool Server::nick_is_valid(std::string buf)
+{
+	if (!buf.size()){
+		std::cout<<"Err_nonicknamegiven"<<std::endl;
+		return(false);
+	}
+	if (buf.find('#') == 0 || buf.find(':') == 0 || buf.find(32)){
+		std::cout<<"Err_erroneousnnickname"<<std::endl;
+		return(false);
+	}
+	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		if (buf == it->second.getNick())
+		{
+			std::cout<<"Err_nicknameinuse"<<std::endl;
+			return (false);
+		}
+	}
+	return(true);
+}
+
+bool Server::parse_user_command(Client &client, std::string buf){
+	std::string username;
+	std::string realname;
+	size_t pos = buf.find(' ');
+	
+}
+
 void Server::parse_input(Client &client)
 {
 	std::string buf = client.getBuf();
@@ -95,8 +123,8 @@ void Server::parse_input(Client &client)
 		}
 		else{
 			buf = buf.substr(5, buf.size());
-			client.setNick(buf);
-			client.setIsRegistered(true);
+			if (nick_is_valid(buf))
+				client.setNick(buf);
 		}
 	}
 	if (buf.find("USER") == 0)
@@ -105,10 +133,14 @@ void Server::parse_input(Client &client)
 			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
 			//send it to the client
 		}
+		if (client.getIsRegistered() == true){
+			std::cout<<"You cannot register twice."<<std::endl;
+			//send it to the client
+		}
 		else{
-			buf = buf.substr(6, buf.size());
-			client.setName(buf);
-			client.setIsRegistered(true);
+			buf = buf.substr(5, buf.size());
+			if (parse_user_command(client, buf))
+				client.setIsRegistered(true);
 		}
 	}
 }

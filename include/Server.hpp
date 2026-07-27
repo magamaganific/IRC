@@ -58,6 +58,8 @@ class Server
 		void disconnect_clients();
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
+		bool nick_is_valid(std::string buf);
+		bool parse_user_command(Client &client, std::string buf);
 		~Server();
 };
 
