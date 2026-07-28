@@ -89,9 +89,52 @@ bool Server::nick_is_valid(std::string buf)
 
 bool Server::parse_user_command(Client &client, std::string buf){
 	std::string username;
+	std::string zero;
+	std::string asterisk;
 	std::string realname;
-	size_t pos = buf.find(' ');
-	
+	size_t pos;
+	int error = 0;
+
+	for (int i = 0; i < 4; i++)
+	{
+		pos = buf.find(' ');
+		if (!pos)
+			break;
+		if (!username.size()){
+			username = buf.substr(0, pos);
+			if (username == "0" || username == "*" || username.size() < 1){
+				std::cout<<"Err_needmoreparams"<<std::endl;
+				error = 1;
+				break;
+			}
+		}
+		else if (!zero.size()){
+			zero = buf.substr(0, pos);
+			if(zero != "0"){
+				std::cout<<"0 missing or misplaced"<<std::endl;
+				error = 1;
+				break;
+			}
+		}
+		else if (!asterisk.size()){
+			asterisk = buf.substr(0, pos);
+			if(asterisk != "*"){
+				std::cout<<"* missing or misplaced"<<std::endl;
+				error = 1;
+				break;
+			}
+		}
+		else if (!realname.size())
+			realname = buf;
+		buf = buf.substr(pos + 1);
+	}
+	if (!error){
+		client.setName(username);
+		client.setReal(realname);
+	}
+	std::cout<<username<<zero<<asterisk<<realname<<std::endl;
+	(void)client;
+	return(true);
 }
 
 void Server::parse_input(Client &client)
@@ -134,7 +177,7 @@ void Server::parse_input(Client &client)
 			//send it to the client
 		}
 		if (client.getIsRegistered() == true){
-			std::cout<<"You cannot register twice."<<std::endl;
+			std::cout<<"Err_alreadyregistered"<<std::endl;
 			//send it to the client
 		}
 		else{
