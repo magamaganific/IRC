@@ -72,8 +72,8 @@ bool Server::nick_is_valid(std::string buf)
 		std::cout<<"Err_nonicknamegiven"<<std::endl;
 		return(false);
 	}
-	if (buf.find('#') == 0 || buf.find(':') == 0 || buf.find(32)){
-		std::cout<<"Err_erroneousnnickname"<<std::endl;
+	if (buf[0] == '#' || buf[0] == ':' || buf[0] == 32){
+		std::cout<<"Err_erroneousnnickname: "<<std::endl;
 		return(false);
 	}
 	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
@@ -105,7 +105,7 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			if (username == "0" || username == "*" || username.size() < 1){
 				std::cout<<"Err_needmoreparams"<<std::endl;
 				error = 1;
-				break;
+				return (false);
 			}
 		}
 		else if (!zero.size()){
@@ -113,7 +113,7 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			if(zero != "0"){
 				std::cout<<"0 missing or misplaced"<<std::endl;
 				error = 1;
-				break;
+				return (false);
 			}
 		}
 		else if (!asterisk.size()){
@@ -121,7 +121,7 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			if(asterisk != "*"){
 				std::cout<<"* missing or misplaced"<<std::endl;
 				error = 1;
-				break;
+				return (false);
 			}
 		}
 		else if (!realname.size())
@@ -145,10 +145,10 @@ void Server::parse_input(Client &client)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		std::cout<<"buff: "<<buf.size()<<std::endl;
+		// std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
 		std::cout<<"buff: "<<buf<<std::endl;
-		std::cout<<"buff size: "<<buf.size()<<std::endl;
+		// std::cout<<"buff size: "<<buf.size()<<std::endl;
 		std::cout<<"pass: "<<_password<<std::endl;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
@@ -191,11 +191,10 @@ void Server::parse_input(Client &client)
 void Server::readClientInput(int fd, int i)
 {
 	char buf[256] = {'\0'};
-	// Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	std::cout<<"nbytes: "<<nbytes<<std::endl;
-	std::cout<<"cli.getFd(): "<<_clients[fd].getFd()<<std::endl;
+	// std::cout<<"nbytes: "<<nbytes<<std::endl;
+	// std::cout<<"cli.getFd(): "<<_clients[fd].getFd()<<std::endl;
 	if (nbytes <= 0){
 		if (nbytes == 0){
 			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
@@ -231,7 +230,7 @@ void Server::readClientInput(int fd, int i)
 		std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
 		std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
 		std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
-		std::cout<<"HOSTNAME: "<<_clients[fd].getHost()<<std::endl;
+		// std::cout<<"HOSTNAME: "<<_clients[fd].getHost()<<std::endl;
 	}
 }
 
