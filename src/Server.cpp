@@ -1,32 +1,21 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/21 13:34:55 by dgargantill      ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-# include "Server.hpp"
+#include "Server.hpp"
 
 Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
-{
-	_password = _password + "\r\n";
-}
+{}
+
 Server::Server(const Server &other)
 {
 	(void)other;
 }
+
 Server &Server::operator=(const Server &other)
 {
 	(void)other;
 	return (*this);
 }
+
 std::string Server::get_port()
 {
 	return (this->_port);
@@ -34,6 +23,39 @@ std::string Server::get_port()
 
 Server::~Server()
 {}
+
+Chanel *Server::getChanel(std::string name)
+{
+    for (std::map<std::string, Chanel *>::iterator it = _chanels.begin(); it != _chanels.end(); ++it)
+    {
+        std::string tester = it->first;
+        str_tolower(name);
+        str_tolower(tester);
+        if(tester == name)
+            return (it->second);
+    } 
+    return(NULL);
+}
+std::map<std::string, Chanel *> &Server::getChanelsVector()
+{
+    return _chanels;
+}
+
+bool Server::findChanel(std::string name)
+{
+    for (std::map<std::string, Chanel *>::iterator it = _chanels.begin(); it != _chanels.end(); ++it)
+    {
+        std::string tester = it->first;
+        str_tolower(name);
+        str_tolower(tester);
+        if(tester == name)
+            return (true);
+    } 
+    return(false);
+}
+
+
+
 void Server::init()
 {
 	struct addrinfo	hints;
@@ -64,18 +86,47 @@ void Server::init()
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
 }
 
+bool Server::nick_is_valid(std::string buf)
+{
+	if (!buf.size()){
+		std::cout<<"Err_nonicknamegiven"<<std::endl;
+		return(false);
+	}
+	if (buf.find('#') == 0 || buf.find(':') == 0 || buf.find(32)){
+		std::cout<<"Err_erroneousnnickname"<<std::endl;
+		return(false);
+	}
+	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		if (buf == it->second.getNick())
+		{
+			std::cout<<"Err_nicknameinuse"<<std::endl;
+			return (false);
+		}
+	}
+	return(true);
+}
+
+bool Server::parse_user_command(Client &client, std::string buf){
+	std::string username;
+	std::string realname;
+	size_t pos = buf.find(' ');
+	
+}
+
 void Server::parse_input(Client &client)
 {
 	std::string buf = client.getBuf();
+	std::cout<<"Client buf: "<<buf<<std::endl;
 	if (buf.find("CAP") == 0)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
 		std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
-		std::cout<<"buff: "<<buf;
-		std::cout<<"buff: "<<buf.size()<<std::endl;
-		std::cout<<"pass: "<<_password;
+		std::cout<<"buff: "<<buf<<std::endl;
+		std::cout<<"buff size: "<<buf.size()<<std::endl;
+		std::cout<<"pass: "<<_password<<std::endl;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
 		else
@@ -86,9 +137,31 @@ void Server::parse_input(Client &client)
 	}
 	if (buf.find("NICK") == 0)
 	{
-		buf = buf.substr(5, buf.size());
-		client.setNick(buf);
-		client.setIsRegistered(true);
+		if (client.getIsAuthenticated() == false){
+			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+			//send it to the client
+		}
+		else{
+			buf = buf.substr(5, buf.size());
+			if (nick_is_valid(buf))
+				client.setNick(buf);
+		}
+	}
+	if (buf.find("USER") == 0)
+	{
+		if (client.getIsAuthenticated() == false){
+			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+			//send it to the client
+		}
+		if (client.getIsRegistered() == true){
+			std::cout<<"You cannot register twice."<<std::endl;
+			//send it to the client
+		}
+		else{
+			buf = buf.substr(5, buf.size());
+			if (parse_user_command(client, buf))
+				client.setIsRegistered(true);
+		}
 	}
 }
 
@@ -98,8 +171,8 @@ void Server::readClientInput(int fd, int i)
 	// Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	// std::cout<<"nbytes: "<<nbytes<<std::endl;
-	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
+	std::cout<<"nbytes: "<<nbytes<<std::endl;
+	std::cout<<"cli.getFd(): "<<_clients[fd].getFd()<<std::endl;
 	if (nbytes <= 0){
 		if (nbytes == 0){
 			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
@@ -111,10 +184,31 @@ void Server::readClientInput(int fd, int i)
 	}
 	else
 	{
-		std::cout<<buf;
+		std::cout<<"original buffer:"<<buf;
 		_clients[fd].setBuf(buf);
-		parse_input(_clients[fd]);
-		std::cout<<_clients[fd].getNick()<<std::endl;
+		size_t pos;
+		if ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
+			while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
+				std::string line = _clients[fd].getBuf().substr(0, pos);
+				_clients[fd].getBuf().erase(0, pos + 2);
+				_clients[fd].setBuf((char *)line.c_str());
+				parse_input(_clients[fd]);
+			}
+		}
+		else if ((pos = _clients[fd].getBuf().find("\n")) != std::string::npos){
+			while ((pos = _clients[fd].getBuf().find("\n")) != std::string::npos){
+				std::string line = _clients[fd].getBuf().substr(0, pos);
+				_clients[fd].getBuf().erase(0, pos + 1);
+				_clients[fd].setBuf((char *)line.c_str());
+				parse_input(_clients[fd]);
+			}
+		}
+		else
+			parse_input(_clients[fd]);
+		std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
+		std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
+		std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
+		std::cout<<"HOSTNAME: "<<_clients[fd].getHost()<<std::endl;
 	}
 }
 
@@ -134,7 +228,7 @@ void Server::accept_clients()
 	{
 		_acepted_fds.push_back(client_fd);
 
-		std::cout << "Nueva Conexión" << std::endl;
+		std::cout << "Nueva Conexion" << std::endl;
 	}
 }
 

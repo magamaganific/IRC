@@ -14,6 +14,7 @@ private:
 	std::string         _topic;
 	// password
 	std::string         _chanel_pass;
+	std::string			_chanel_mode;
 	// chanel_type (si es tipo invite solo puedes entrar por invitacion)
 	// limite de usuarios (limitado o indefinido)
 	int				_limit;
@@ -42,6 +43,8 @@ public:
 	void addMember(int fd);
 	void addAdmin(int fd);
 	void addGuest(int fd);
+
+	bool Chanel::isModed(char modechar) const;
 	~Chanel();
 
 	

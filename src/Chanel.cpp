@@ -2,11 +2,10 @@
 
 Chanel::Chanel()
 {
-
 }
 
 Chanel::Chanel(std::string name, std::string pass, int admin)
-: _chanel_name(name), _topic(""), _chanel_pass(pass), _limit(0)
+: _chanel_name(name), _chanel_pass(pass), _chanel_mode(""), _topic(""), _limit(0)
 {
 	addAdmin(admin);
 	addMember(admin);
@@ -14,8 +13,8 @@ Chanel::Chanel(std::string name, std::string pass, int admin)
 
 
 Chanel::Chanel(const Chanel &obj)
-: _chanel_name(obj._chanel_name), _topic(obj._topic),
-_chanel_pass(obj._chanel_pass), _limit(obj._limit), _admins(obj._admins), _members(obj._members),
+: _chanel_name(obj._chanel_name), _chanel_pass(obj._chanel_pass), _chanel_mode(obj._chanel_mode),
+_topic(obj._topic), _limit(obj._limit), _admins(obj._admins), _members(obj._members),
 _guests(obj._guests)
 {}
 
@@ -24,6 +23,7 @@ Chanel &Chanel::operator=(const Chanel &obj)
 	if (this != &obj)
     {
         _chanel_name = obj._chanel_name;
+		_chanel_mode = obj._chanel_mode;
         _topic = obj._topic;
         _chanel_pass = obj._chanel_pass;
         _limit = obj._limit;
@@ -54,7 +54,6 @@ const int &Chanel::getLimit() const
     return _limit;
 }
 
-
 const std::vector<int> &Chanel::getChanelAdmins() const
 {
     return (_admins);
@@ -80,6 +79,14 @@ void Chanel::setChanelTopic(const std::string topic)
 void Chanel::setChanelPass(const std::string pass)
 {
 	_chanel_pass = pass;
+}
+
+bool Chanel::isModed(char modechar) const
+{
+    std::size_t pos = _chanel_mode.find(modechar);
+    if (pos != std::string::npos)
+        return true;
+    return false;
 }
 
 void Chanel::addMember(int fd)
