@@ -17,10 +17,14 @@
 # include <vector>
 # include <map>
 # include <unistd.h>
+ #include <string>
 # include "Client.hpp"
 # include "Chanel.hpp"
 # include "utils.hpp"
+# include "replies.hpp"
 
+class Chanel;
+class Client;
 
 class Server
 {
@@ -52,8 +56,8 @@ class Server
 		bool nick_is_valid(std::string buf);
 		bool parse_user_command(Client &client, std::string buf);
 		bool findChanel(std::string name);
-    Chanel *getChanel(std::string name);
-		std::map<std::string, Chanel *> &Server::getChanelsVector();
+    	Chanel *getChanel(std::string name);
+		std::map<std::string, Chanel *> &getChanelsVector();
 		void SendMsg(int fd, std::string msg);
 		~Server();
 };

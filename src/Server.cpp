@@ -55,7 +55,6 @@ bool Server::findChanel(std::string name)
 }
 
 
-
 void Server::init()
 {
 	struct addrinfo	hints;
@@ -109,11 +108,43 @@ bool Server::nick_is_valid(std::string buf)
 
 bool Server::parse_user_command(Client &client, std::string buf){
 	std::string username;
+	std::string zero;
+	std::string asterisk;
 	std::string realname;
-	size_t pos = buf.find(' ');
+	std::string check;
+	size_t pos;
+
+	for (int i = 0; i < 4; i++)
+	{
+		pos = buf.find(' ');
+		if (!pos)
+			break;
+		if (!username.size()){
+			username = buf.substr(0, pos);
+			if (username == "0" || username == "*" || username.size() < 1)
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+		}
+		else if (!zero.size()){
+			zero = buf.substr(0, pos);
+			if(zero != "0")
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+		}
+		else if (!asterisk.size()){
+			asterisk = buf.substr(0, pos);
+			if(asterisk != "*")
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")),false);
+		}
+		else if (!realname.size())
+			realname = buf;
+		check = buf.substr(pos + 1);
+		if (check == buf)
+			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+		buf = check;
+	}
+	client.setName(username);
+	client.setReal(realname);
+	return(true);
 	
-	// MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente:
-	//freeaddrinfo(_addrLst);
 }
 
 void Server::parse_input(Client &client)
