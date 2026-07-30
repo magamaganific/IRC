@@ -6,7 +6,7 @@ Client::Client(){
 }
 
 Client::Client(int fd)
-:_fd(fd), _nick(""), _name(""),
+:_fd(fd), _nick(""), _name("unregistered"),
 _isRegistered(false), _isAuthenticated(false),
 _isOperator(false), _buf(""){
 }

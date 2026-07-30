@@ -66,7 +66,7 @@ void Server::init()
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
 }
 
-bool Server::nick_is_valid(std::string buf)
+bool Server::nick_is_valid(std::string buf, Client &client)
 {
 	if (!buf.size()){
 		std::cout<<"Err_nonicknamegiven"<<std::endl;
@@ -80,7 +80,7 @@ bool Server::nick_is_valid(std::string buf)
 	{
 		if (buf == it->second.getNick())
 		{
-			std::cout<<"Err_nicknameinuse"<<std::endl;
+			client.MsgToMe(ERR_NICKNAMEINUSE(client.getName(), buf));
 			return (false);
 		}
 	}
@@ -103,21 +103,21 @@ bool Server::parse_user_command(Client &client, std::string buf){
 		if (!username.size()){
 			username = buf.substr(0, pos);
 			if (username == "0" || username == "*" || username.size() < 1){
-				std::cout<<"Err_needmoreparams"<<std::endl;
+				client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
 				return (false);
 			}
 		}
 		else if (!zero.size()){
 			zero = buf.substr(0, pos);
 			if(zero != "0"){
-				std::cout<<"0 missing or misplaced"<<std::endl;
+				client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
 				return (false);
 			}
 		}
 		else if (!asterisk.size()){
 			asterisk = buf.substr(0, pos);
 			if(asterisk != "*"){
-				std::cout<<"* missing or misplaced"<<std::endl;
+				client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
 				return (false);
 			}
 		}
@@ -125,7 +125,7 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			realname = buf;
 		check = buf.substr(pos + 1);
 		if (check == buf){
-			std::cout<<"Err_needmoreparams"<<std::endl;
+			client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
 			return (false);
 		}
 		buf = check;
@@ -146,41 +146,28 @@ void Server::parse_input(Client &client)
 		std::cout<<"No capabilities available"<<std::endl;
 	if (buf.find("PASS") == 0)
 	{
-		// std::cout<<"buff: "<<buf.size()<<std::endl;
-		buf = buf.substr(5, buf.size());
-		std::cout<<"buff: "<<buf<<std::endl;
-		// std::cout<<"buff size: "<<buf.size()<<std::endl;
-		std::cout<<"pass: "<<_password<<std::endl;
+		if (client.getIsRegistered() == true)
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
 		if (buf != _password)
-			std::cout<<"Wrong password"<<std::endl;
+			client.MsgToMe(ERR_PASSWDMISMATCH(client.getName()));
 		else
 		{
-			std::cout<<"Password accepted: "<<_password<<std::endl;
+			client.MsgToMe(RPL_WELCOME(client.getName()));
 			client.setIsAuthenticated(true);
 		}
 	}
 	if (buf.find("NICK") == 0)
 	{
-		if (client.getIsAuthenticated() == false){
-			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
-			//send it to the client
-		}
-		else{
-			buf = buf.substr(5, buf.size());
-			if (nick_is_valid(buf))
-				client.setNick(buf);
-		}
+		buf = buf.substr(5, buf.size());
+		if (nick_is_valid(buf, client)){
+			client.setNick(buf);}
 	}
 	if (buf.find("USER") == 0)
-	{
-		if (client.getIsAuthenticated() == false){
-			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
-			//send it to the client
-		}
-		if (client.getIsRegistered() == true){
-			std::cout<<"Err_alreadyregistered"<<std::endl;
-			//send it to the client
-		}
+	{	std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+		if (client.getIsRegistered() == true)
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
+		if (client.getNick().size() == 0)
+			client.MsgToMe("Please set a Nickname before registering");
 		else{
 			buf = buf.substr(5, buf.size());
 			if (parse_user_command(client, buf))
