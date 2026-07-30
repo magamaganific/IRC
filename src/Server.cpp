@@ -6,7 +6,7 @@
 /*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/21 13:34:55 by dgargantill      ###   ########.fr       */
+/*   Updated: 2026/07/22 18:07:46 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,6 +294,7 @@ void Server::pollLoop()
 	int j = 0;
 	while (j == 0)
 	{
+		std::cout << _pfd_arr.size() - 1 << " connected clients. Waiting for events..." << std::endl;
 		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
 		if (ready < 0) /* manejar error, ojo con EINTR */ 
 		{
@@ -337,6 +338,25 @@ void Server::pollLoop()
 		if (_disconnected_sockets.size() > 0)
 			disconnect_clients();
 	}
+}
+
+//Esta es la funcion que manda al fd que le pases el msg <std::string>
+void Server::SendMsg(int fd, std::string msg)
+{
+    if (msg.length() > 510)
+        msg.erase(510);
+    std::cout << fd << " " << msg << "\n";
+    msg += "\r\n";
+
+    ssize_t total = 0;
+    ssize_t length = static_cast<ssize_t>(msg.size());
+    while (total < length)
+    {
+        ssize_t n_bytes = send(fd, msg.c_str() + total, length - total, 0);
+        if (n_bytes < 0)
+            throw std::runtime_error(strerror(errno));
+        total += n_bytes;
+    }
 }
 
 void Server::end(){

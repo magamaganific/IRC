@@ -6,7 +6,11 @@
 /*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
+<<<<<<< HEAD
 /*   Updated: 2026/07/21 13:30:11 by dgargantill      ###   ########.fr       */
+=======
+/*   Updated: 2026/07/22 17:59:33 by frlorenz         ###   ########.fr       */
+>>>>>>> merge
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +33,7 @@
 # include <vector>
 # include <map>
 # include <unistd.h>
+# include <string>
 # include "Client.hpp"
 
 
@@ -60,6 +65,7 @@ class Server
 		void parse_input(Client &client);
 		bool nick_is_valid(std::string buf);
 		bool parse_user_command(Client &client, std::string buf);
+		void SendMsg(int fd, std::string msg);
 		~Server();
 };
 

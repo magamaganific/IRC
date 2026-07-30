@@ -41,6 +41,8 @@ public:
 	bool		getIsAuthenticated();
 	bool		getIsOperator();
 	int getFd() const;
+
+	void MsgToMe(std::string msg);
 };
 
 #endif

@@ -50,7 +50,7 @@ const std::string &Chanel::getChanelPass() const
 
 const int &Chanel::getLimit() const
 {
-    return _limit;
+    return (this->_limit);
 }
 
 
