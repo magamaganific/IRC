@@ -1,7 +1,8 @@
-
 #ifndef CLIENT_HPP
  #define CLIENT_HPP
  
+ #include "Server.hpp"
+ #include "Chanel.hpp"
  #include <string>
 
 class Client
@@ -16,6 +17,7 @@ private:
 	bool		_isAuthenticated;
 	bool		_isOperator;
 	std::string _buf;
+	std::vector<std::string>    _chanels;
 public:
 	Client();
 	Client(int fd);
@@ -40,6 +42,11 @@ public:
 	bool		getIsRegistered();
 	bool		getIsAuthenticated();
 	bool		getIsOperator();
+	void 		addChanel(const Chanel& ch);
+	void 		deleteChanel(const Chanel& ch);
+	const std::vector<std::string> &Client::getChanels() const;
+	void Client::MsgToMe(std::string msg);
+	
 	int getFd() const;
 
 	void MsgToMe(std::string msg);

@@ -36,6 +36,38 @@ std::string Server::get_port()
 Server::~Server()
 {}
 
+Chanel *Server::getChanel(std::string name)
+{
+    for (std::map<std::string, Chanel *>::iterator it = _chanels.begin(); it != _chanels.end(); ++it)
+    {
+        std::string tester = it->first;
+        str_tolower(name);
+        str_tolower(tester);
+        if(tester == name)
+            return (it->second);
+    } 
+    return(NULL);
+}
+std::map<std::string, Chanel *> &Server::getChanelsVector()
+{
+    return _chanels;
+}
+
+bool Server::findChanel(std::string name)
+{
+    for (std::map<std::string, Chanel *>::iterator it = _chanels.begin(); it != _chanels.end(); ++it)
+    {
+        std::string tester = it->first;
+        str_tolower(name);
+        str_tolower(tester);
+        if(tester == name)
+            return (true);
+    } 
+    return(false);
+}
+
+
+
 void Server::init()
 {
 	struct addrinfo	hints;
@@ -259,8 +291,7 @@ void Server::disconnect_clients()
 
 void Server::pollLoop()
 {
-	int j = 0;
-	while (j == 0)
+	while (true)
 	{
 		std::cout << _pfd_arr.size() - 1 << " connected clients. Waiting for events..." << std::endl;
 		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
