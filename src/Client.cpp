@@ -128,3 +128,21 @@ void Client::deleteChanel(const Chanel& ch)
         }
     }
 }
+
+void Client::MsgToMe(std::string msg)
+{
+    if (msg.length() > 510)
+        msg.erase(510);
+    std::cout << _fd << " " << msg << "\n";
+    msg += "\r\n";
+
+    ssize_t total = 0;
+    ssize_t length = static_cast<ssize_t>(msg.size());
+    while (total < length)
+    {
+        ssize_t n_bytes = send(_fd, msg.c_str() + total, length - total, 0);
+        if (n_bytes < 0)
+            throw std::runtime_error(strerror(errno));
+        total += n_bytes;
+    }
+}

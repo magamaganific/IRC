@@ -45,6 +45,7 @@ public:
 	void 		addChanel(const Chanel& ch);
     void 		deleteChanel(const Chanel& ch);
 	const std::vector<std::string> &Client::getChanels() const;
+	void Client::MsgToMe(std::string msg);
 	
 	int getFd() const;
 };

@@ -85,11 +85,11 @@ void cmdJoin(Server &s, Client& client, std::string line)
         {
             Chanel *ch = s.getChanel(f_name);
             if (!validPass(ch, f_pass, client.getFd()))
-                std::cout << "placeholderMsg"<< std::endl;
+                client.MsgToMe(ERR_BADCHANNELKEY(nick, f_name));
             else if (!validCapacity(ch))
-                std::cout << "placeholderMsg"<< std::endl;
+                client.MsgToMe(ERR_CHANNELISFULL(nick, f_name));
             else if (!isPrivate(ch, client.getFd()))
-                std::cout << "placeholderMsg"<< std::endl;
+                client.MsgToMe(ERR_INVITEONLYCHAN(nick, f_name));
             else
             {
                 ch->addMember(client.getFd());
