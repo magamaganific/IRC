@@ -72,7 +72,7 @@ bool Server::nick_is_valid(std::string buf)
 		std::cout<<"Err_nonicknamegiven"<<std::endl;
 		return(false);
 	}
-	if (buf[0] == '#' || buf[0] == ':' || buf[0] == 32){
+	if (buf[0] == '#' || buf[0] == ':' || buf.find(32)){
 		std::cout<<"Err_erroneousnnickname: "<<std::endl;
 		return(false);
 	}
@@ -92,8 +92,8 @@ bool Server::parse_user_command(Client &client, std::string buf){
 	std::string zero;
 	std::string asterisk;
 	std::string realname;
+	std::string check;
 	size_t pos;
-	int error = 0;
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -104,7 +104,6 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			username = buf.substr(0, pos);
 			if (username == "0" || username == "*" || username.size() < 1){
 				std::cout<<"Err_needmoreparams"<<std::endl;
-				error = 1;
 				return (false);
 			}
 		}
@@ -112,7 +111,6 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			zero = buf.substr(0, pos);
 			if(zero != "0"){
 				std::cout<<"0 missing or misplaced"<<std::endl;
-				error = 1;
 				return (false);
 			}
 		}
@@ -120,18 +118,21 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			asterisk = buf.substr(0, pos);
 			if(asterisk != "*"){
 				std::cout<<"* missing or misplaced"<<std::endl;
-				error = 1;
 				return (false);
 			}
 		}
 		else if (!realname.size())
 			realname = buf;
-		buf = buf.substr(pos + 1);
+		check = buf.substr(pos + 1);
+		if (check == buf){
+			std::cout<<"Err_needmoreparams"<<std::endl;
+			return (false);
+		}
+		buf = check;
+		// std::cout<<"User parse buf: "<<buf<<std::endl;
 	}
-	if (!error){
-		client.setName(username);
-		client.setReal(realname);
-	}
+	client.setName(username);
+	client.setReal(realname);
 	std::cout<<username<<zero<<asterisk<<realname<<std::endl;
 	(void)client;
 	return(true);
