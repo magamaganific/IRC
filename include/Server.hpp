@@ -63,7 +63,7 @@ class Server
 		void disconnect_clients();
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
-		bool nick_is_valid(std::string buf);
+		bool nick_is_valid(std::string buf, Client &client);
 		bool parse_user_command(Client &client, std::string buf);
 		bool findChanel(std::string name);
     	Chanel *getChanel(std::string name);
