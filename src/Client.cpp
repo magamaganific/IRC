@@ -1,6 +1,4 @@
-#include "../include/Client.hpp"
-#include "../include/Server.hpp"
-
+#include "Client.hpp"
 
 Client::Client(){
 }
@@ -12,7 +10,7 @@ _isOperator(false), _buf(""){
 }
 
 Client::Client(const Client &old)
-: _fd(old._fd), _nick(old._nick), _name(old._name),
+: _fd(old._fd), _nick(old._nick), _name(old._name), _chanels(old._chanels),
 _isRegistered(old._isRegistered), _isAuthenticated(old._isAuthenticated),
 _isOperator(old._isOperator), _buf(old._buf){
 }
@@ -26,6 +24,7 @@ Client &Client::operator=(const Client &old){
 		this->_isRegistered = old._isRegistered;
 		this->_isAuthenticated = old._isAuthenticated;
 		this->_isOperator = old._isOperator;
+		this->_chanels = old._chanels;
 	}
 	return (*this);
 }
@@ -38,6 +37,14 @@ void Client::setName(std::string name){
 
 void Client::setNick(std::string nick){
 	this->_nick = nick;
+}
+
+void Client::setReal(std::string real){
+	this->_realname = real;
+}
+
+void Client::setHost(std::string host){
+	this->_hostname = host;
 }
 
 void Client::setBuf(char *buf){
@@ -64,6 +71,14 @@ std::string Client::getNick(){
 	return(_nick);
 }
 
+std::string Client::getReal(){
+	return(_realname);
+}
+
+std::string Client::getHost(){
+	return(_hostname);
+}
+
 std::string Client::getBuf(){
 	return(_buf);
 }
@@ -84,6 +99,34 @@ bool Client::getIsOperator(){
 int Client::getFd() const{
 	// std::cout<<"get->"<<this->_fd<<std::endl;
 	return(_fd);
+}
+
+
+void Client::addChanel(const Chanel& ch)
+{
+    for (std::vector<std::string>::iterator iter = _chanels.begin(); iter != _chanels.end(); ++iter)
+    {
+        if (*iter == ch.getChanelName())
+            return;
+    }
+    _chanels.push_back(ch.getChanelName());
+}
+
+const std::vector<std::string> &Client::getChanels() const
+{
+    return (_chanels);
+}
+
+void Client::deleteChanel(const Chanel& ch)
+{
+    for(std::vector<std::string>::iterator iter = _chanels.begin(); iter != _chanels.end(); ++iter)
+    {
+        if((*iter) == ch.getChanelName())
+        {
+            _chanels.erase(iter);
+            return ;
+        }
+    }
 }
 
 //Espero que este sea util al final. Envia el <std::string msg> al fd del cliente.

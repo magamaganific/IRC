@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/22 17:59:33 by frlorenz         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SERVER_HPP
  #define SERVER_HPP
 
@@ -30,19 +18,22 @@
 # include <map>
 # include <unistd.h>
 # include "Client.hpp"
+# include "Chanel.hpp"
+# include "utils.hpp"
 
 
 class Server
 {
 	private:
-		const std::string			_port;
-		std::string					_password;
-        int							_serv_socket;
-        struct addrinfo				*_addrLst; // lista enlazada de `sockaddr` de algún tipo que podremos utilizar más adelante
-		std::vector<struct pollfd>	_pfd_arr;
-		std::map<int, Client>		_clients;
-		std::vector<int>			_acepted_fds;
-		std::vector<int>			_disconnected_sockets;
+		const std::string					_port;
+		std::string							_password;
+        int									_serv_socket;
+        struct addrinfo						*_addrLst; // lista enlazada de `sockaddr` de algún tipo que podremos utilizar más adelante
+		std::vector<struct pollfd>			_pfd_arr;
+		std::map<int, Client>				_clients;
+		std::vector<int>					_acepted_fds;
+		std::vector<int>					_disconnected_sockets;
+		std::map<std::string, Chanel *>		_chanels;
 		
 	public:
 		Server();
@@ -58,6 +49,11 @@ class Server
 		void disconnect_clients();
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
+		bool nick_is_valid(std::string buf);
+		bool parse_user_command(Client &client, std::string buf);
+		bool findChanel(std::string name);
+    Chanel *getChanel(std::string name);
+		std::map<std::string, Chanel *> &Server::getChanelsVector();
 		void SendMsg(int fd, std::string msg);
 		~Server();
 };
