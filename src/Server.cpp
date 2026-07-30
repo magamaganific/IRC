@@ -112,6 +112,8 @@ bool Server::parse_user_command(Client &client, std::string buf){
 	std::string realname;
 	size_t pos = buf.find(' ');
 	
+	// MUY IMPORTANTE: liberar la lista, es memoria reservada dinámicamente:
+	//freeaddrinfo(_addrLst);
 }
 
 void Server::parse_input(Client &client)
@@ -126,6 +128,7 @@ void Server::parse_input(Client &client)
 		buf = buf.substr(5, buf.size());
 		std::cout<<"buff: "<<buf<<std::endl;
 		std::cout<<"buff size: "<<buf.size()<<std::endl;
+		std::cout<<"buff: "<<buf.size()<<std::endl;
 		std::cout<<"pass: "<<_password<<std::endl;
 		if (buf != _password)
 			std::cout<<"Wrong password"<<std::endl;
@@ -171,8 +174,8 @@ void Server::readClientInput(int fd, int i)
 	// Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
-	std::cout<<"nbytes: "<<nbytes<<std::endl;
-	std::cout<<"cli.getFd(): "<<_clients[fd].getFd()<<std::endl;
+	// std::cout<<"nbytes: "<<nbytes<<std::endl;
+	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
 	if (nbytes <= 0){
 		if (nbytes == 0){
 			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
@@ -268,9 +271,9 @@ void Server::disconnect_clients()
 
 void Server::pollLoop()
 {
-	int j = 0;
-	while (j == 0)
+	while (true)
 	{
+		std::cout << _pfd_arr.size() - 1 << " connected clients. Waiting for events..." << std::endl;
 		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
 		if (ready < 0) /* manejar error, ojo con EINTR */ 
 		{
@@ -314,6 +317,25 @@ void Server::pollLoop()
 		if (_disconnected_sockets.size() > 0)
 			disconnect_clients();
 	}
+}
+
+//Esta es la funcion que manda al fd que le pases el msg <std::string>
+void Server::SendMsg(int fd, std::string msg)
+{
+    if (msg.length() > 510)
+        msg.erase(510);
+    std::cout << fd << " " << msg << "\n";
+    msg += "\r\n";
+
+    ssize_t total = 0;
+    ssize_t length = static_cast<ssize_t>(msg.size());
+    while (total < length)
+    {
+        ssize_t n_bytes = send(fd, msg.c_str() + total, length - total, 0);
+        if (n_bytes < 0)
+            throw std::runtime_error(strerror(errno));
+        total += n_bytes;
+    }
 }
 
 void Server::end(){

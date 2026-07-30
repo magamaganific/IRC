@@ -52,8 +52,9 @@ class Server
 		bool nick_is_valid(std::string buf);
 		bool parse_user_command(Client &client, std::string buf);
 		bool findChanel(std::string name);
-        Chanel *getChanel(std::string name);
+    Chanel *getChanel(std::string name);
 		std::map<std::string, Chanel *> &Server::getChanelsVector();
+		void SendMsg(int fd, std::string msg);
 		~Server();
 };
 

@@ -129,6 +129,7 @@ void Client::deleteChanel(const Chanel& ch)
     }
 }
 
+//Espero que este sea util al final. Envia el <std::string msg> al fd del cliente.
 void Client::MsgToMe(std::string msg)
 {
     if (msg.length() > 510)

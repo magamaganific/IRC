@@ -114,6 +114,4 @@ void Chanel::addGuest(int fd)
 }
 
 Chanel::~Chanel()
-{
-	
-}
+{}
