@@ -68,21 +68,14 @@ void Server::init()
 
 bool Server::nick_is_valid(std::string buf, Client &client)
 {
-	if (!buf.size()){
-		std::cout<<"Err_nonicknamegiven"<<std::endl;
-		return(false);
-	}
-	if (buf[0] == '#' || buf[0] == ':' || buf.find(32)){
-		std::cout<<"Err_erroneousnnickname: "<<std::endl;
-		return(false);
-	}
+	if (!buf.size())
+		return(client.MsgToMe(ERR_NONICKNAMEGIVEN(client.getName())), false);
+	if (buf[0] == '#' || buf[0] == ':' || buf.find(32))
+		return(client.MsgToMe(ERR_ERRONEUSNICKNAME(client.getName(), buf)), false);
 	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		if (buf == it->second.getNick())
-		{
-			client.MsgToMe(ERR_NICKNAMEINUSE(client.getName(), buf));
-			return (false);
-		}
+			return (client.MsgToMe(ERR_NICKNAMEINUSE(client.getName(), buf)), false);
 	}
 	return(true);
 }
@@ -102,48 +95,37 @@ bool Server::parse_user_command(Client &client, std::string buf){
 			break;
 		if (!username.size()){
 			username = buf.substr(0, pos);
-			if (username == "0" || username == "*" || username.size() < 1){
-				client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
-				return (false);
-			}
+			if (username == "0" || username == "*" || username.size() < 1)
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
 		}
 		else if (!zero.size()){
 			zero = buf.substr(0, pos);
-			if(zero != "0"){
-				client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
-				return (false);
-			}
+			if(zero != "0")
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
 		}
 		else if (!asterisk.size()){
 			asterisk = buf.substr(0, pos);
-			if(asterisk != "*"){
-				client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
-				return (false);
-			}
+			if(asterisk != "*")
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")),false);
 		}
 		else if (!realname.size())
 			realname = buf;
 		check = buf.substr(pos + 1);
-		if (check == buf){
-			client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER"));
-			return (false);
-		}
+		if (check == buf)
+			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
 		buf = check;
-		// std::cout<<"User parse buf: "<<buf<<std::endl;
 	}
 	client.setName(username);
 	client.setReal(realname);
-	std::cout<<username<<zero<<asterisk<<realname<<std::endl;
-	(void)client;
 	return(true);
 }
 
 void Server::parse_input(Client &client)
 {
 	std::string buf = client.getBuf();
-	std::cout<<"Client buf: "<<buf<<std::endl;
+	// std::cout<<"Client buf: "<<buf<<std::endl;
 	if (buf.find("CAP") == 0)
-		std::cout<<"No capabilities available"<<std::endl;
+		client.MsgToMe("No capabilities available.");
 	if (buf.find("PASS") == 0)
 	{
 		if (client.getIsRegistered() == true)
@@ -163,17 +145,16 @@ void Server::parse_input(Client &client)
 			client.setNick(buf);}
 	}
 	if (buf.find("USER") == 0)
-	{	std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
+	{	
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
-		if (client.getNick().size() == 0)
-			client.MsgToMe("Please set a Nickname before registering");
 		else{
 			buf = buf.substr(5, buf.size());
 			if (parse_user_command(client, buf))
 				client.setIsRegistered(true);
 		}
 	}
+
 }
 
 void Server::readClientInput(int fd, int i)
@@ -215,9 +196,9 @@ void Server::readClientInput(int fd, int i)
 		}
 		else
 			parse_input(_clients[fd]);
-		std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
-		std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
-		std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
+		// std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
+		// std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
+		// std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
 		// std::cout<<"HOSTNAME: "<<_clients[fd].getHost()<<std::endl;
 	}
 }
