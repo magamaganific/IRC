@@ -97,13 +97,21 @@ void cmdJoin(Server &s, Client& client, std::string line)
             {
                 ch->addMember(client.getFd());
                 client.addChanel(*(ch));
+                for (std::vector<int>::const_iterator it = ch->getChanelMembers().begin();
+                    it != ch->getChanelMembers().end(); it++)
+                    s.SendMsg(*it,my_serv_name" " + client.getNick() + " Joined " + f_name);
             }
         }
         else
         {
-            Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
-            s.getChanelsVector()[f_name] = ch;
-            client.addChanel(*ch);
+            if (f_name[0] == '#'){
+                Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
+                client.MsgToMe(my_serv_name" Channel " + f_name + " created");
+                s.getChanelsVector()[f_name] = ch;
+                client.addChanel(*ch);
+            }
+            else
+                client.MsgToMe(my_serv_name" Channel names must be prefixed with a #");
         }
     }
 }

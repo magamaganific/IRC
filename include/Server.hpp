@@ -68,7 +68,7 @@ class Server
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
 		bool nick_is_valid(std::string buf, Client &client);
-		bool parse_user_command(Client &client, std::string buf);
+		bool cmdUser(Client &client, std::string buf);
 		bool findChanel(std::string name);
     	Chanel *getChanel(std::string name);
 		std::map<std::string, Chanel *> &getChanelsVector();

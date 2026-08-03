@@ -96,7 +96,7 @@ void Server::init()
     if (listen(_serv_socket, SOMAXCONN) < 0)
 		throw std::runtime_error("Error listen: " + std::string(strerror(errno)));
 		
-	std::cout << "Server listening on port " << _port.c_str() << std::endl;
+	std::cout << my_serv_name"Server listening on port " << _port.c_str() << std::endl;
 }
 
 bool find_space(std::string buf)
@@ -124,7 +124,7 @@ bool Server::nick_is_valid(std::string buf, Client &client)
 	return(true);
 }
 
-bool Server::parse_user_command(Client &client, std::string buf){
+bool Server::cmdUser(Client &client, std::string buf){
 	std::string username;
 	std::string zero;
 	std::string asterisk;
@@ -161,6 +161,20 @@ bool Server::parse_user_command(Client &client, std::string buf){
 	}
 	client.setName(username);
 	client.setReal(realname);
+	if (client.getNick() == "")
+	{
+		int i = 0;
+		for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
+		{
+			if (username == it->second.getNick()){
+				i = 1;
+				client.MsgToMe(my_serv_name"Couldn't set Username to Nickname, please introduce a nickname");
+				break;
+			}
+		}
+		if (i == 0)
+			client.setNick(username);
+	}
 	return(true);
 	
 }
@@ -196,7 +210,7 @@ void Server::parse_input(Client &client)
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
 		else
-			if (parse_user_command(client, buf))
+			if (cmdUser(client, buf))
 				client.setIsRegistered(true);
 	}
 	if (buf.find("JOIN") == 0)
@@ -204,8 +218,10 @@ void Server::parse_input(Client &client)
 		buf = buf.substr(5, buf.size());
 		if (client.getIsAuthenticated() == false)
 			client.MsgToMe(my_serv_name" CSTOM " + client.getName() + " :Authenticate to access channel functions");
+		if (client.getIsRegistered() == false)
+			client.MsgToMe(my_serv_name" CSTOM " + client.getName() + " :Register to access channel functions");
 		else
-			cmdJoin(this, client, buf);
+			cmdJoin(*this, client, buf);
 	}
 }
 
