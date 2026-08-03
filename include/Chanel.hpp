@@ -45,6 +45,11 @@ public:
 	void addGuest(int fd);
 
 	bool Chanel::isModed(char modechar) const;
+	bool Chanel::isGuest(int fd) const;
+	bool Chanel::isAdmin(int fd) const;
+	void Chanel::removeFromGuests(int fd);
+
+	void Chanel::sendMsgToMembers(std::string msg) const;
 	~Chanel();
 
 	

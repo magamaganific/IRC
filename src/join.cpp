@@ -12,8 +12,12 @@ bool validPass(Chanel* chanel, std::string pass, int fd)
     {
         if(chanel->getChanelPass().empty())
             return true;
-        else if((chanel->getChanelPass() == pass))
+        else if((chanel->getChanelPass() == pass) || (chanel->isGuest(fd)))
+        {
+            /*if (chanel->isGuest(fd))
+                chanel->removeFromGuests(fd);*/
             return true;
+        }
         else
             return false;
     }
@@ -37,9 +41,9 @@ bool isPrivate(Chanel *chanel, int fd)
 {
     if(chanel->isModed('i'))
     {
-        /*if(chanel->isInvited(fd))
+        if(chanel->isGuest(fd))
             return(true);
-        else*/
+        else
             return(false);
     }
     else
@@ -63,6 +67,20 @@ std::map<std::string, std::string> getChanelParams(std::string names, std::strin
     return (ch_params);
 }
 
+void joinNotification(Server &s, Client& client, std::string ch_name)
+{
+    std::string joinMsg;
+    std::string topic = s.getChanel(ch_name)->getChanelTopic();
+    std::string nick = client.getNick();
+    std::vector<int> clients = s.getChanel(ch_name)->getChanelMembers();
+
+    joinMsg = ":" + client.getNick() + "!" + client.getName() + "@" + client.getHost()+ " JOIN " + ch_name;
+    s.getChanel(ch_name)-> sendMsgToMembers(joinMsg);
+    if(!topic.empty())
+        client.MsgToMe(RPL_TOPIC(nick, ch_name, topic));
+    else
+        client.MsgToMe(RPL_NOTOPIC(nick, ch_name));
+}
 
 
 void cmdJoin(Server &s, Client& client, std::string line)
@@ -94,6 +112,7 @@ void cmdJoin(Server &s, Client& client, std::string line)
             {
                 ch->addMember(client.getFd());
                 client.addChanel(*(ch));
+                joinNotification(s, client, name);
             }
         }
         else
@@ -101,6 +120,7 @@ void cmdJoin(Server &s, Client& client, std::string line)
             Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
             s.getChanelsVector()[f_name] = ch;
             client.addChanel(*ch);
+            joinNotification(s, client, name);
         }
     }
 }

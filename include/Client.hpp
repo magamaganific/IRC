@@ -8,15 +8,16 @@
 class Client
 {
 private:
-	int _fd;
-	std::string _nick;
-	std::string _name;
-	std::string _realname;
-	std::string _hostname;
-	bool		_isRegistered;
-	bool		_isAuthenticated;
-	bool		_isOperator;
-	std::string _buf;
+	int 						_fd;
+	std::string 				_nick;
+	std::string 				_name;
+	std::string 				_realname;
+	std::string 				_hostname;
+	std::string                 _cmd;
+	bool						_isRegistered;
+	bool						_isAuthenticated;
+	bool						_isOperator;
+	std::string 				_buf;
 	std::vector<std::string>    _chanels;
 public:
 	Client();
@@ -30,6 +31,7 @@ public:
 	void setReal(std::string real);
 	void setHost(std::string host);
 	void setBuf(char *buf);
+	void setClientCmd(const std::string &cmd);
 	void setIsRegistered(bool tof);
 	void setIsAuthenticated(bool tof);
 	void setIsOperator(bool tof);
@@ -39,6 +41,7 @@ public:
 	std::string getReal();
 	std::string getHost();
 	std::string getBuf();
+	std::string getClientCmd() const;
 	bool		getIsRegistered();
 	bool		getIsAuthenticated();
 	bool		getIsOperator();

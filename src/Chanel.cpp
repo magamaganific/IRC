@@ -89,6 +89,35 @@ bool Chanel::isModed(char modechar) const
     return false;
 }
 
+bool Chanel::isGuest(int fd) const
+{
+    for(std::vector<int>::const_iterator i = _guests.begin(); i != _guests.end(); i++)
+        if((*i) == fd)
+            return true;
+    return false;   
+}
+
+bool Chanel::isAdmin(int fd) const
+{
+    for(std::vector<int>::const_iterator i = _admins.begin(); i != _admins.end(); i++)
+        if((*i) == fd)
+            return true;
+    return false;
+}
+
+
+void Chanel::removeFromGuests(int fd)
+{
+    for (std::vector<int>::iterator i = _guests.begin(); i != _guests.end(); ++i)
+    {
+        if (*i == fd)
+        {
+            _guests.erase(i);
+            return;
+        }
+    }    
+}
+
 void Chanel::addMember(int fd)
 {
     for (size_t i = 0; i < _members.size(); i++)
@@ -111,6 +140,19 @@ void Chanel::addGuest(int fd)
         if(_guests[i] == fd)
             return;
     _guests.push_back(fd);
+}
+
+
+void Chanel::sendMsgToMembers(std::string msg) const
+{
+    Server *_server;
+    for (size_t i = 0; i < _members.size(); ++i)
+    {
+        if (_server->findClientbyFd(_members[i]))
+        {
+            _server->SendMsg(_members[i], msg);
+        }
+    }
 }
 
 Chanel::~Chanel()

@@ -51,6 +51,11 @@ void Client::setBuf(char *buf){
 	this->_buf = buf;
 }
 
+void Client::setClientCmd(const std::string &cmd)
+{
+    _cmd = cmd;
+}
+
 void Client::setIsRegistered(bool tof){
 	_isRegistered = tof;
 }
@@ -81,6 +86,11 @@ std::string Client::getHost(){
 
 std::string Client::getBuf(){
 	return(_buf);
+}
+
+std::string Client::getClientCmd() const
+{
+    return (_cmd);
 }
 
 bool Client::getIsRegistered(){
