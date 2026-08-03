@@ -49,8 +49,6 @@ public:
 	void MsgToMe(std::string msg);
 	
 	int getFd() const;
-
-	void MsgToMe(std::string msg);
 };
 
 #endif

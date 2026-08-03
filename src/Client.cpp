@@ -36,6 +36,8 @@ void Client::setName(std::string name){
 }
 
 void Client::setNick(std::string nick){
+	if (this->_nick.size() != 0 && this->_nick != nick)
+		MsgToMe("Changing Nick from " + this->_nick + " to " + nick + ".");
 	this->_nick = nick;
 }
 

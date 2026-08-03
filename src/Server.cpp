@@ -78,15 +78,17 @@ void Server::init()
 	hints.ai_flags = AI_PASSIVE;
 	status = getaddrinfo(NULL, _port.c_str(), &hints, &_addrLst);
 	if(status != 0)
-		throw std::runtime_error("Error: " + std::string(gai_strerror(status)));
+		throw std::runtime_error("Status Error: " + std::string(gai_strerror(status)));
 	_serv_socket = socket(_addrLst->ai_family, _addrLst->ai_socktype, _addrLst->ai_protocol);
 	if (_serv_socket < 0)
-		throw std::runtime_error("Error: " + std::string(strerror(errno)));
+		throw std::runtime_error("_Serv_Socket Error: " + std::string(strerror(errno)));
 	int yes = 1;
 	if (setsockopt(_serv_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
 		throw std::runtime_error("Error setsock: " + std::string(strerror(errno)));
-	if (bind(_serv_socket, _addrLst->ai_addr, _addrLst->ai_addrlen) < 0)
+	if (bind(_serv_socket, _addrLst->ai_addr, _addrLst->ai_addrlen) < 0){
+		end();
         throw std::runtime_error("Error bind: " + std::string(strerror(errno)));
+	}
 
 	struct pollfd serv_pfd = { _serv_socket, POLLIN, 0 };
     _pfd_arr.push_back(serv_pfd);
@@ -97,11 +99,22 @@ void Server::init()
 	std::cout << "Server listening on port " << _port.c_str() << std::endl;
 }
 
+bool find_space(std::string buf)
+{
+	for (size_t i = 0; i < buf.size(); i++)
+	{
+		if (buf[i] == 32)
+			return (true);
+	}
+	return (false);
+}
+
 bool Server::nick_is_valid(std::string buf, Client &client)
 {
 	if (!buf.size())
 		return(client.MsgToMe(ERR_NONICKNAMEGIVEN(client.getName())), false);
-	if (buf[0] == '#' || buf[0] == ':' || buf.find(32))
+	// std::cout<<"checkpoint"<<std::endl;
+	if (buf[0] == '#' || buf[0] == ':' || find_space(buf))
 		return(client.MsgToMe(ERR_ERRONEUSNICKNAME(client.getName(), buf)), false);
 	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
@@ -160,6 +173,7 @@ void Server::parse_input(Client &client)
 		client.MsgToMe("No capabilities available.");
 	if (buf.find("PASS") == 0)
 	{
+		buf = buf.substr(5, buf.size());
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
 		if (buf != _password)
@@ -178,15 +192,20 @@ void Server::parse_input(Client &client)
 	}
 	if (buf.find("USER") == 0)
 	{	
+		buf = buf.substr(5, buf.size());
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
-		else{
-			buf = buf.substr(5, buf.size());
+		else
 			if (parse_user_command(client, buf))
 				client.setIsRegistered(true);
-		}
 	}
-
+	if (buf.find("JOIN") == 0)
+	{
+		buf = buf.substr(5, buf.size());
+		if (client.getIsAuthenticated() == false)
+			client.MsgToMe(my_serv_name" CSTOM " + client.getName() + " :Authenticate to access channel functions");
+		else
+	}
 }
 
 void Server::readClientInput(int fd, int i)

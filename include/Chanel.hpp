@@ -10,12 +10,12 @@ private:
 	/* atributos */
 	// chanel_name
 	std::string         _chanel_name;
+	// topic
+	std::string         _topic;
 	// password
 	std::string         _chanel_pass;
 	std::string			_chanel_mode;
 	// chanel_type (si es tipo invite solo puedes entrar por invitacion)
-	// topic
-	std::string         _topic;
 	// limite de usuarios (limitado o indefinido)
 	int				_limit;
 	// array de admins
