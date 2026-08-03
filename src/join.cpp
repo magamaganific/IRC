@@ -8,6 +8,7 @@
 
 bool validPass(Chanel* chanel, std::string pass, int fd)
 {
+    (void) fd; //HAY QUE MIRAR PARA QUE VALE LO DEL FD ESTE...
     if(chanel->isModed('k'))
     {
         if(chanel->getChanelPass().empty())
@@ -35,6 +36,7 @@ bool validCapacity(Chanel *chanel)
 
 bool isPrivate(Chanel *chanel, int fd)
 {
+    (void) fd; //HAY QUE MIRAR PARA QUE VALE LO DEL FD ESTE...
     if(chanel->isModed('i'))
     {
         /*if(chanel->isInvited(fd))

@@ -67,7 +67,6 @@ bool Server::findChanel(std::string name)
 }
 
 
-
 void Server::init()
 {
 	struct addrinfo	hints;
@@ -150,6 +149,7 @@ bool Server::parse_user_command(Client &client, std::string buf){
 	client.setName(username);
 	client.setReal(realname);
 	return(true);
+	
 }
 
 void Server::parse_input(Client &client)

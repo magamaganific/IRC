@@ -1,5 +1,5 @@
 #ifndef CHANEL_HPP
-# define CHANEL_HPP
+ #define CHANEL_HPP
 
 # include "Server.hpp"
 # include "Client.hpp"
@@ -44,7 +44,7 @@ public:
 	void addAdmin(int fd);
 	void addGuest(int fd);
 
-	bool Chanel::isModed(char modechar) const;
+	bool isModed(char modechar) const;
 	~Chanel();
 
 	

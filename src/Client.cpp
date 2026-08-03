@@ -10,9 +10,9 @@ _isOperator(false), _buf(""){
 }
 
 Client::Client(const Client &old)
-: _fd(old._fd), _nick(old._nick), _name(old._name), _chanels(old._chanels),
+: _fd(old._fd), _nick(old._nick), _name(old._name),
 _isRegistered(old._isRegistered), _isAuthenticated(old._isAuthenticated),
-_isOperator(old._isOperator), _buf(old._buf){
+_isOperator(old._isOperator), _buf(old._buf), _chanels(old._chanels){
 }
 
 Client &Client::operator=(const Client &old){
