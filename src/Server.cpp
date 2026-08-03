@@ -155,7 +155,7 @@ bool Server::cmdUser(Client &client, std::string buf){
 		else if (!realname.size())
 			realname = buf;
 		check = buf.substr(pos + 1);
-		if (check == buf)
+		if (check == buf && !realname.size())
 			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
 		buf = check;
 	}
@@ -179,13 +179,24 @@ bool Server::cmdUser(Client &client, std::string buf){
 	
 }
 
+bool setup_complete(Client &client)
+{
+	if (client.getIsAuthenticated() == false)
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName() 
+			+ " :Authenticate to access channel functions"), false);
+	if (client.getIsRegistered() == false)
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName()
+			+ " :Register to access channel functions"), false);
+	return (true);
+}
+
 void Server::parse_input(Client &client)
 {
 	std::string buf = client.getBuf();
 	// std::cout<<"Client buf: "<<buf<<std::endl;
 	if (buf.find("CAP") == 0)
 		client.MsgToMe("No capabilities available.");
-	if (buf.find("PASS") == 0)
+	else if (buf.find("PASS") == 0)
 	{
 		buf = buf.substr(5, buf.size());
 		if (client.getIsRegistered() == true)
@@ -198,30 +209,35 @@ void Server::parse_input(Client &client)
 			client.setIsAuthenticated(true);
 		}
 	}
-	if (buf.find("NICK") == 0)
+	else if (buf.find("NICK") == 0)
 	{
 		buf = buf.substr(5, buf.size());
 		if (nick_is_valid(buf, client)){
 			client.setNick(buf);}
 	}
-	if (buf.find("USER") == 0)
-	{	
-		buf = buf.substr(5, buf.size());
+	else if (buf.find("USER") == 0)
+	{
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
 		else
-			if (cmdUser(client, buf))
+			if (cmdUser(client, buf.substr(5, buf.size())))
 				client.setIsRegistered(true);
 	}
-	if (buf.find("JOIN") == 0)
-	{
-		buf = buf.substr(5, buf.size());
-		if (client.getIsAuthenticated() == false)
-			client.MsgToMe(my_serv_name" CSTOM " + client.getName() + " :Authenticate to access channel functions");
-		if (client.getIsRegistered() == false)
-			client.MsgToMe(my_serv_name" CSTOM " + client.getName() + " :Register to access channel functions");
-		else
-			cmdJoin(*this, client, buf);
+	else if (setup_complete(client)){
+		if (buf.find("JOIN") == 0)
+			cmdJoin(*this, client, buf.substr(5, buf.size()));
+		else if (buf.find("PRIVMSG") == 0)
+			buf = buf.substr(8, buf.size()); // cambiar por la funcion adecuada 
+		else if (buf.find("QUIT") == 0)
+			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("KICK") == 0)
+			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("INVITE") == 0)
+			buf = buf.substr(7, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("TOPIC") == 0)
+			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("MODE") == 0)
+			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 	}
 }
 

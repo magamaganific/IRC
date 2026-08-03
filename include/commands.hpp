@@ -9,3 +9,4 @@ class Chanel;
 class Client;
 
 void cmdJoin(Server &s, Client& client, std::string line);
+void cmdPrivmsg(Server &s, Client &client, std::string line);
