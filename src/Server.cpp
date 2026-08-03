@@ -205,6 +205,7 @@ void Server::parse_input(Client &client)
 		if (client.getIsAuthenticated() == false)
 			client.MsgToMe(my_serv_name" CSTOM " + client.getName() + " :Authenticate to access channel functions");
 		else
+			cmdJoin(this, client, buf);
 	}
 }
 

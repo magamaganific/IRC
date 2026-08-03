@@ -29,12 +29,13 @@
 # include <vector>
 # include <map>
 # include <unistd.h>
- #include <string>
+# include <string>
 # include "Client.hpp"
 # include "replies.hpp"
 # include "Chanel.hpp"
 # include "utils.hpp"
 # include "replies.hpp"
+# include "commands.hpp"
 
 class Chanel;
 class Client;
