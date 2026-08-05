@@ -1,4 +1,16 @@
-#include "Server.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
+/*   Updated: 2026/07/22 18:07:46 by frlorenz         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+# include "Server.hpp"
 
 extern bool run_server;
 
@@ -68,15 +80,17 @@ void Server::init()
 	hints.ai_flags = AI_PASSIVE;
 	status = getaddrinfo(NULL, _port.c_str(), &hints, &_addrLst);
 	if(status != 0)
-		throw std::runtime_error("Error: " + std::string(gai_strerror(status)));
+		throw std::runtime_error("Status Error: " + std::string(gai_strerror(status)));
 	_serv_socket = socket(_addrLst->ai_family, _addrLst->ai_socktype, _addrLst->ai_protocol);
 	if (_serv_socket < 0)
-		throw std::runtime_error("Error: " + std::string(strerror(errno)));
+		throw std::runtime_error("_Serv_Socket Error: " + std::string(strerror(errno)));
 	int yes = 1;
 	if (setsockopt(_serv_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
 		throw std::runtime_error("Error setsock: " + std::string(strerror(errno)));
-	if (bind(_serv_socket, _addrLst->ai_addr, _addrLst->ai_addrlen) < 0)
+	if (bind(_serv_socket, _addrLst->ai_addr, _addrLst->ai_addrlen) < 0){
+		end();
         throw std::runtime_error("Error bind: " + std::string(strerror(errno)));
+	}
 
 	struct pollfd serv_pfd = { _serv_socket, POLLIN, 0 };
     _pfd_arr.push_back(serv_pfd);
@@ -84,31 +98,35 @@ void Server::init()
     if (listen(_serv_socket, SOMAXCONN) < 0)
 		throw std::runtime_error("Error listen: " + std::string(strerror(errno)));
 		
-	std::cout << "Server listening on port " << _port.c_str() << std::endl;
+	std::cout << my_serv_name"Server listening on port " << _port.c_str() << std::endl;
 }
 
-bool Server::nick_is_valid(std::string buf)
+bool find_space(std::string buf)
 {
-	if (!buf.size()){
-		std::cout<<"Err_nonicknamegiven"<<std::endl;
-		return(false);
+	for (size_t i = 0; i < buf.size(); i++)
+	{
+		if (buf[i] == 32)
+			return (true);
 	}
-	if (buf.find('#') == 0 || buf.find(':') == 0 || buf.find(32)){
-		std::cout<<"Err_erroneousnnickname"<<std::endl;
-		return(false);
-	}
+	return (false);
+}
+
+bool Server::nick_is_valid(std::string buf, Client &client)
+{
+	if (!buf.size())
+		return(client.MsgToMe(ERR_NONICKNAMEGIVEN(client.getName())), false);
+	// std::cout<<"checkpoint"<<std::endl;
+	if (buf[0] == '#' || buf[0] == ':' || find_space(buf))
+		return(client.MsgToMe(ERR_ERRONEUSNICKNAME(client.getName(), buf)), false);
 	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		if (buf == it->second.getNick())
-		{
-			std::cout<<"Err_nicknameinuse"<<std::endl;
-			return (false);
-		}
+			return (client.MsgToMe(ERR_NICKNAMEINUSE(client.getName(), buf)), false);
 	}
 	return(true);
 }
 
-bool Server::parse_user_command(Client &client, std::string buf){
+bool Server::cmdUser(Client &client, std::string buf){
 	std::string username;
 	std::string zero;
 	std::string asterisk;
@@ -139,76 +157,99 @@ bool Server::parse_user_command(Client &client, std::string buf){
 		else if (!realname.size())
 			realname = buf;
 		check = buf.substr(pos + 1);
-		if (check == buf)
+		if (check == buf && !realname.size())
 			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
 		buf = check;
 	}
 	client.setName(username);
 	client.setReal(realname);
-	return(true);
+	if (client.getNick() == "")
+	{
+		int i = 0;
+		for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
+		{
+			if (username == it->second.getNick()){
+				i = 1;
+				client.MsgToMe(my_serv_name"Couldn't set Username to Nickname, please introduce a nickname");
+				break;
+			}
+		}
+		if (i == 0)
+			client.setNick(username);
+	}
+	return(client.MsgToMe("Registration complete..."), true);
 	
+}
+
+bool setup_complete(Client &client)
+{
+	if (client.getIsAuthenticated() == false)
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName() 
+			+ " :Authenticate to access channel functions"), false);
+	if (client.getIsRegistered() == false)
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName()
+			+ " :Register to access channel functions"), false);
+	return (true);
 }
 
 void Server::parse_input(Client &client)
 {
 	std::string buf = client.getBuf();
-	std::cout<<"Client buf: "<<buf<<std::endl;
+	// std::cout<<"Client buf: "<<buf<<std::endl;
 	if (buf.find("CAP") == 0)
-		std::cout<<"No capabilities available"<<std::endl;
-	if (buf.find("PASS") == 0)
+		client.MsgToMe("No capabilities available.");
+	else if (buf.find("PASS") == 0)
 	{
-		std::cout<<"buff: "<<buf.size()<<std::endl;
 		buf = buf.substr(5, buf.size());
-		std::cout<<"buff: "<<buf<<std::endl;
-		std::cout<<"buff size: "<<buf.size()<<std::endl;
-		std::cout<<"buff: "<<buf.size()<<std::endl;
-		std::cout<<"pass: "<<_password<<std::endl;
+		if (client.getIsRegistered() == true)
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
 		if (buf != _password)
-			std::cout<<"Wrong password"<<std::endl;
+			client.MsgToMe(ERR_PASSWDMISMATCH(client.getName()));
 		else
 		{
-			std::cout<<"Password accepted: "<<_password<<std::endl;
+			client.MsgToMe(RPL_WELCOME(client.getName()));
 			client.setIsAuthenticated(true);
 		}
 	}
-	if (buf.find("NICK") == 0)
+	else if (buf.find("NICK") == 0)
 	{
-		if (client.getIsAuthenticated() == false){
-			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
-			//send it to the client
-		}
-		else{
-			buf = buf.substr(5, buf.size());
-			if (nick_is_valid(buf))
-				client.setNick(buf);
-		}
+		buf = buf.substr(5, buf.size());
+		if (nick_is_valid(buf, client)){
+			client.setNick(buf);}
 	}
-	if (buf.find("USER") == 0)
+	else if (buf.find("USER") == 0)
 	{
-		if (client.getIsAuthenticated() == false){
-			std::cout<<"You are not authenticated, Please introduce the server password"<<std::endl;
-			//send it to the client
-		}
-		if (client.getIsRegistered() == true){
-			std::cout<<"You cannot register twice."<<std::endl;
-			//send it to the client
-		}
-		else{
-			buf = buf.substr(5, buf.size());
-			if (parse_user_command(client, buf))
+		if (client.getIsRegistered() == true)
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
+		else
+			if (cmdUser(client, buf.substr(5, buf.size())))
 				client.setIsRegistered(true);
-		}
+	}
+	else if (setup_complete(client)){
+		if (buf.find("JOIN") == 0)
+			cmdJoin(*this, client, buf.substr(5, buf.size()));
+		else if (buf.find("PRIVMSG") == 0)
+			cmdPrivmsg(*this, client, buf.substr(8, buf.size())); // cambiar por la funcion adecuada 
+		else if (buf.find("QUIT") == 0)
+			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("KICK") == 0)
+			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("INVITE") == 0)
+			buf = buf.substr(7, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("TOPIC") == 0)
+			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
+		else if (buf.find("MODE") == 0)
+			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 	}
 }
 
 void Server::readClientInput(int fd, int i)
 {
 	char buf[256] = {'\0'};
-	// Client &cli = _clients[fd];
 	int nbytes = recv(fd, &buf, sizeof(buf), 0);
 
 	// std::cout<<"nbytes: "<<nbytes<<std::endl;
-	// std::cout<<"cli.getFd(): "<<cli.getFd()<<std::endl;
+	// std::cout<<"cli.getFd(): "<<_clients[fd].getFd()<<std::endl;
 	if (nbytes <= 0){
 		if (nbytes == 0){
 			std::cout<<"Client "<<_clients[fd].getFd()<<" hung up"<<std::endl;
@@ -241,10 +282,10 @@ void Server::readClientInput(int fd, int i)
 		}
 		else
 			parse_input(_clients[fd]);
-		std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
-		std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
-		std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
-		std::cout<<"HOSTNAME: "<<_clients[fd].getHost()<<std::endl;
+		// std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
+		// std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
+		// std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
+		// std::cout<<"HOSTNAME: "<<_clients[fd].getHost()<<std::endl;
 	}
 }
 

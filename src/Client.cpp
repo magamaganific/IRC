@@ -4,7 +4,7 @@ Client::Client(){
 }
 
 Client::Client(int fd)
-:_fd(fd), _nick(""), _name(""),
+:_fd(fd), _nick(""), _name("unregistered"),
 _isRegistered(false), _isAuthenticated(false),
 _isOperator(false), _buf(""){
 }
@@ -36,6 +36,8 @@ void Client::setName(std::string name){
 }
 
 void Client::setNick(std::string nick){
+	if (this->_nick.size() != 0 && this->_nick != nick)
+		MsgToMe("Changing Nick from " + this->_nick + " to " + nick + ".");
 	this->_nick = nick;
 }
 

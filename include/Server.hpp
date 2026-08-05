@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
+/*   Updated: 2026/07/22 17:59:33 by frlorenz         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVER_HPP
  #define SERVER_HPP
 
@@ -18,11 +30,13 @@
 # include <vector>
 # include <map>
 # include <unistd.h>
- #include <string>
+# include <string>
 # include "Client.hpp"
+# include "replies.hpp"
 # include "Chanel.hpp"
 # include "utils.hpp"
 # include "replies.hpp"
+# include "commands.hpp"
 
 class Chanel;
 class Client;
@@ -54,8 +68,8 @@ class Server
 		void disconnect_clients();
 		void readClientInput(int fd, int i);
 		void parse_input(Client &client);
-		bool nick_is_valid(std::string buf);
-		bool parse_user_command(Client &client, std::string buf);
+		bool nick_is_valid(std::string buf, Client &client);
+		bool cmdUser(Client &client, std::string buf);
 		bool findChanel(std::string name);
     	Chanel *getChanel(std::string name);
 		std::map<std::string, Chanel *> &getChanelsVector();
