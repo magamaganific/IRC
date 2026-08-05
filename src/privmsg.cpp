@@ -34,6 +34,6 @@ void cmdPrivmsg(Server &s, Client &client, std::string line)
 	if (!message.substr(0, name_pos).size())
 		return(client.MsgToMe(ERR_NORECIPIENT(client.getName(), "PRIVMSG")));
 	sendto.push_back(message.substr(0, name_pos));
-	std::cout<<sendto[0]<<std::endl;
+	// std::cout<<sendto[0]<<std::endl;
 	(void) s;
 }
