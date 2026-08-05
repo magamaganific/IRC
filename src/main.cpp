@@ -6,13 +6,15 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 12:24:38 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/30 16:59:35 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/08/05 12:47:16 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Chanel.hpp"
+
+bool run_server = true;
 
 int check_in(char **argv)
 {

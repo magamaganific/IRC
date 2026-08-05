@@ -13,6 +13,7 @@
 # include <sys/socket.h>
 # include <poll.h>
 # include <exception>
+# include <signal.h>
 # include <errno.h>
 # include <vector>
 # include <map>

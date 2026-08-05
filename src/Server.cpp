@@ -1,5 +1,7 @@
 #include "Server.hpp"
 
+extern bool run_server;
+
 Server::Server()
 {}
 Server::Server(char *port, char *password) : _port(port), _password(password), _serv_socket(-1), _addrLst(NULL)
@@ -300,9 +302,17 @@ void Server::disconnect_clients()
     _disconnected_sockets.clear();
 }
 
+void sigint_handler(int signal)
+{
+    (void)signal;
+    run_server = false;
+}
+
 void Server::pollLoop()
 {
-	while (true)
+	signal(SIGINT, sigint_handler);
+
+	while (run_server)
 	{
 		std::cout << _pfd_arr.size() - 1 << " connected clients. Waiting for events..." << std::endl;
 		int ready = poll(&_pfd_arr[0], _pfd_arr.size(), -1); // -1 = espera indefinida
