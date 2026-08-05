@@ -175,7 +175,7 @@ bool Server::cmdUser(Client &client, std::string buf){
 		if (i == 0)
 			client.setNick(username);
 	}
-	return(true);
+	return(client.MsgToMe("Registration complete..."), true);
 	
 }
 
@@ -227,7 +227,7 @@ void Server::parse_input(Client &client)
 		if (buf.find("JOIN") == 0)
 			cmdJoin(*this, client, buf.substr(5, buf.size()));
 		else if (buf.find("PRIVMSG") == 0)
-			buf = buf.substr(8, buf.size()); // cambiar por la funcion adecuada 
+			cmdPrivmsg(*this, client, buf.substr(8, buf.size())); // cambiar por la funcion adecuada 
 		else if (buf.find("QUIT") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("KICK") == 0)
