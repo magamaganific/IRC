@@ -50,18 +50,38 @@ bool isPrivate(Chanel *chanel, int fd)
         return(true);
 }
 
-std::map<std::string, std::string> getChanelParams(std::string names, std::string pass)
+bool nameIsValid(std::string name)
+{
+    if(name[0] != '#' && name[0] != '&')
+        return false;
+    else if (name.size() == 1)
+        return false;
+    return(true);
+}
+
+std::map<std::string, std::string> getChanelParams(std::string names, std::string pass, Client &client)
 {
     std::istringstream  name_list(names);
     std::istringstream  pass_list(pass);
     std::string         final_names;
     std::string         final_pass;
+    std::string         nick = client.getNick();
     std::map<std::string, std::string> ch_params;
 
     while(std::getline(name_list, final_names, ','))
     {
         if(!std::getline(pass_list, final_pass, ','))
             final_pass = "";
+        if(final_names[0] == '#' && final_names.size() == 1)
+        {
+            client.MsgToMe(ERR_NEEDMOREPARAMS(nick, client.getClientCmd()));
+            return std::map<std::string, std::string> ();
+        }
+        if(!nameIsValid(final_names))
+        {
+            client.MsgToMe(ERR_BADCHANMASK(nick, final_names));
+            return std::map<std::string, std::string> ();
+        }
         ch_params[final_names] = final_pass;
     }
     return (ch_params);
@@ -93,7 +113,7 @@ void cmdJoin(Server &s, Client& client, std::string line)
 
     str >> name;
     str >> pass;
-    ch_params = getChanelParams(name, pass);
+    ch_params = getChanelParams(name, pass, client);
     
     for(std::map<std::string, std::string>::iterator iter = ch_params.begin(); iter != ch_params.end(); ++iter)
     {

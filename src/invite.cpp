@@ -1,6 +1,8 @@
 #include "Server.hpp"
 #include "replies.hpp"
 
+
+
 void cmdInvite(Server &s, Client &client, std::string &line)
 {
     std::istringstream istr_line(line);
@@ -25,7 +27,7 @@ void cmdInvite(Server &s, Client &client, std::string &line)
     if (ch->isModed('i') && !ch->isAdmin(client.getFd()))
         return client.MsgToMe(ERR_CHANOPRIVSNEEDED(client.getNick(), ch_name));
 
-    Client &to_invite = *(s.getClientbyNickname(nick));
+    Client &to_invite = *(s.getClientbyNick(nick));
     if (ch->isGuest(to_invite.getFd()))
         return client.MsgToMe(ERR_USERONCHANNEL(client.getNick(), nick, ch_name));
 

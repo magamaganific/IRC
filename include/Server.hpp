@@ -31,7 +31,7 @@ class Server
         struct addrinfo						*_addrLst; // lista enlazada de `sockaddr` de algún tipo que podremos utilizar más adelante
 		std::vector<struct pollfd>			_pfd_arr;
 		std::map<int, Client>				_clients;
-		std::map<std::string, int>          _clientsByNick;
+		//std::map<std::string, int>          _clientsByNick;
 		std::vector<int>					_acepted_fds;
 		std::vector<int>					_disconnected_sockets;
 		std::map<std::string, Chanel *>		_chanels;
@@ -57,7 +57,7 @@ class Server
 		bool findClientbyNick(std::string name);
     	Chanel *getChanel(std::string name);
 		std::map<std::string, Chanel *> &Server::getChanelsVector();
-		Client *getClientbyNickname(std::string name);
+		Client *getClientbyNick(std::string name);
 		void SendMsg(int fd, std::string msg);
 		~Server();
 };

@@ -41,16 +41,17 @@ std::map<std::string, Chanel *> &Server::getChanelsVector()
     return _chanels;
 }
 
-Client *Server::getClientbyNickname(std::string nick)
+Client *Server::getClientbyNick(std::string nick)
 {
-    for (std::map<std::string, int>::iterator i = _clientsByNick.begin(); i != _clientsByNick.end(); ++i)
+    for (std::map<int, Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
     {
-        std::string cheker = i->first;
-        int fd = _clientsByNick[i->first];
-        str_tolower(nick);
-        str_tolower(cheker);
-        if(cheker == nick)
-            return (&_clients[fd]);
+		std::string check_nick;
+        Client cli = i->second;
+        check_nick = cli.getNick();
+		str_tolower(check_nick);
+		str_tolower(nick);
+        if(check_nick == nick)
+            return (&cli);
     }
     return(NULL);
 }
@@ -64,12 +65,14 @@ bool Server::findClientbyFd(int fd)
 
 bool Server::findClientbyNick(std::string nick)
 {
-    for (std::map<std::string, int>::iterator i = _clientsByNick.begin(); i != _clientsByNick.end(); ++i)
+    for (std::map<int, Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
     {
-        std::string cheker = i->first;
-        str_tolower(nick);
-        str_tolower(cheker);
-        if(cheker == nick)
+        std::string check_nick;
+        Client cli = i->second;
+        check_nick = cli.getNick();
+		str_tolower(check_nick);
+		str_tolower(nick);
+        if(check_nick == nick)
             return (true);
     }
     return (false);
