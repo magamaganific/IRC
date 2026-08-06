@@ -238,11 +238,10 @@ void Server::parse_input(Client &client)
 			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("MODE ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+		else
+			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getName(), buf.substr(0, buf.find(" "))));
 	}
-	else
-		client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getName(), buf.substr(0, buf.find(" "))));
 }
-
 void Server::readClientInput(int fd, int i)
 {
 	char buf[256] = {'\0'};

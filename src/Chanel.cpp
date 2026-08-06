@@ -113,5 +113,16 @@ void Chanel::addGuest(int fd)
     _guests.push_back(fd);
 }
 
+void Chanel::sendMsgToMembers(Server *s, std::string msg) const
+{
+    for (size_t i = 0; i < _members.size(); ++i)
+    {
+        // if (_server->findClientbyFd(_members[i]))
+        // {
+            s->SendMsg(_members[i], msg);
+        // }
+    }
+}
+
 Chanel::~Chanel()
 {}

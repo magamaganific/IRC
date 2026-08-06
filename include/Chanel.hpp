@@ -4,6 +4,8 @@
 # include "Server.hpp"
 # include "Client.hpp"
 
+class Server;
+
 class Chanel
 {
 private:
@@ -43,11 +45,10 @@ public:
 	void addMember(int fd);
 	void addAdmin(int fd);
 	void addGuest(int fd);
+	void sendMsgToMembers(Server *s, std::string msg) const;
 
 	bool isModed(char modechar) const;
 	~Chanel();
-
-	
 };
 
 #endif

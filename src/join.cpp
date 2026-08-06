@@ -10,15 +10,15 @@
 bool validPass(Chanel* chanel, std::string pass, int fd)
 {
     (void) fd; //HAY QUE MIRAR PARA QUE VALE LO DEL FD ESTE...
-    if(chanel->isModed('k'))
-    {
+    //if(chanel->isModed('k'))
+   // {
         if(chanel->getChanelPass().empty())
             return true;
         else if((chanel->getChanelPass() == pass))
             return true;
         else
             return false;
-    }
+    //}
     return(true);
 }
 
@@ -49,18 +49,39 @@ bool isPrivate(Chanel *chanel, int fd)
         return(true);
 }
 
-std::map<std::string, std::string> getChanelParams(std::string names, std::string pass)
+
+bool nameIsValid(std::string name)
+{
+    if(name[0] != '#' && name[0] != '&')
+        return false;
+    else if (name.size() == 1)
+        return false;
+    return(true);
+}
+
+std::map<std::string, std::string> getChanelParams(std::string names, std::string pass, Client &client)
 {
     std::istringstream  name_list(names);
     std::istringstream  pass_list(pass);
     std::string         final_names;
     std::string         final_pass;
+    std::string         nick = client.getNick();
     std::map<std::string, std::string> ch_params;
 
     while(std::getline(name_list, final_names, ','))
     {
         if(!std::getline(pass_list, final_pass, ','))
             final_pass = "";
+         if(final_names[0] == '#' && final_names.size() == 1)
+        {
+            client.MsgToMe(ERR_NEEDMOREPARAMS(nick, "JOIN"));
+            return std::map<std::string, std::string> ();
+        }
+        if(!nameIsValid(final_names))
+        {
+            client.MsgToMe(ERR_BADCHANMASK(nick, final_names));
+            return std::map<std::string, std::string> ();
+        }
         ch_params[final_names] = final_pass;
     }
     return (ch_params);
@@ -78,7 +99,7 @@ void cmdJoin(Server &s, Client& client, std::string line)
 
     str >> name;
     str >> pass;
-    ch_params = getChanelParams(name, pass);
+    ch_params = getChanelParams(name, pass, client);
     
     for(std::map<std::string, std::string>::iterator iter = ch_params.begin(); iter != ch_params.end(); ++iter)
     {
@@ -95,23 +116,18 @@ void cmdJoin(Server &s, Client& client, std::string line)
                 client.MsgToMe(ERR_INVITEONLYCHAN(nick, f_name));
             else
             {
+                ch->sendMsgToMembers(&s, my_serv_name" " + client.getNick() + " joined " + f_name);
                 ch->addMember(client.getFd());
                 client.addChanel(*(ch));
-                for (std::vector<int>::const_iterator it = ch->getChanelMembers().begin();
-                    it != ch->getChanelMembers().end(); it++)
-                    s.SendMsg(*it,my_serv_name" " + client.getNick() + " Joined " + f_name);
+                client.MsgToMe(my_serv_name" you joined " + f_name);
             }
         }
         else
         {
-            if (f_name[0] == '#'){
-                Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
-                client.MsgToMe(my_serv_name" Channel " + f_name + " created");
-                s.getChanelsVector()[f_name] = ch;
-                client.addChanel(*ch);
-            }
-            else
-                client.MsgToMe(my_serv_name" Channel names must be prefixed with a #");
+            Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
+            client.MsgToMe(my_serv_name" Channel " + f_name + " created");
+            s.getChanelsVector()[f_name] = ch;
+            client.addChanel(*ch);
         }
     }
 }
