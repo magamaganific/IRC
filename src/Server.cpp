@@ -194,9 +194,9 @@ void Server::parse_input(Client &client)
 {
 	std::string buf = client.getBuf();
 	// std::cout<<"Client buf: "<<buf<<std::endl;
-	if (buf.find("CAP") == 0)
+	if (buf.find("CAP ") == 0)
 		client.MsgToMe("No capabilities available.");
-	else if (buf.find("PASS") == 0)
+	else if (buf.find("PASS ") == 0)
 	{
 		buf = buf.substr(5, buf.size());
 		if (client.getIsRegistered() == true)
@@ -209,13 +209,13 @@ void Server::parse_input(Client &client)
 			client.setIsAuthenticated(true);
 		}
 	}
-	else if (buf.find("NICK") == 0)
+	else if (buf.find("NICK ") == 0)
 	{
 		buf = buf.substr(5, buf.size());
 		if (nick_is_valid(buf, client)){
 			client.setNick(buf);}
 	}
-	else if (buf.find("USER") == 0)
+	else if (buf.find("USER ") == 0)
 	{
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
@@ -224,21 +224,23 @@ void Server::parse_input(Client &client)
 				client.setIsRegistered(true);
 	}
 	else if (setup_complete(client)){
-		if (buf.find("JOIN") == 0)
+		if (buf.find("JOIN ") == 0)
 			cmdJoin(*this, client, buf.substr(5, buf.size()));
-		else if (buf.find("PRIVMSG") == 0)
+		else if (buf.find("PRIVMSG ") == 0)
 			cmdPrivmsg(*this, client, buf.substr(8, buf.size())); // cambiar por la funcion adecuada 
-		else if (buf.find("QUIT") == 0)
+		else if (buf.find("QUIT ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("KICK") == 0)
+		else if (buf.find("KICK ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("INVITE") == 0)
+		else if (buf.find("INVITE ") == 0)
 			buf = buf.substr(7, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("TOPIC") == 0)
+		else if (buf.find("TOPIC ") == 0)
 			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("MODE") == 0)
+		else if (buf.find("MODE ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 	}
+	else
+		client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getName(), buf.substr(0, buf.find(" "))));
 }
 
 void Server::readClientInput(int fd, int i)
