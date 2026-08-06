@@ -108,7 +108,9 @@ void cmdJoin(Server &s, Client& client, std::string line)
         if(s.findChanel(f_name))
         {
             Chanel *ch = s.getChanel(f_name);
-            if (!validPass(ch, f_pass, client.getFd()))
+            if (ch->isMember(client.getFd()))
+                return (client.MsgToMe(my_serv_name" you already joined " + f_name));
+            else if (!validPass(ch, f_pass, client.getFd()))
                 client.MsgToMe(ERR_BADCHANNELKEY(nick, f_name));
             else if (!validCapacity(ch))
                 client.MsgToMe(ERR_CHANNELISFULL(nick, f_name));
@@ -120,12 +122,20 @@ void cmdJoin(Server &s, Client& client, std::string line)
                 ch->addMember(client.getFd());
                 client.addChanel(*(ch));
                 client.MsgToMe(my_serv_name" you joined " + f_name);
+                if(ch->getChanelTopic().empty())
+                    client.MsgToMe(RPL_TOPIC(nick, name, ch->getChanelTopic()));
+                else
+                    client.MsgToMe(RPL_NOTOPIC(nick, name));
             }
         }
         else
         {
             Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
             client.MsgToMe(my_serv_name" Channel " + f_name + " created");
+            if(ch->getChanelTopic().empty())
+                client.MsgToMe(RPL_TOPIC(nick, name, ch->getChanelTopic()));
+            else
+                client.MsgToMe(RPL_NOTOPIC(nick, name));
             s.getChanelsVector()[f_name] = ch;
             client.addChanel(*ch);
         }

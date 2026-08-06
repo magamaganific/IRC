@@ -48,6 +48,10 @@ public:
 	void sendMsgToMembers(Server *s, std::string msg) const;
 
 	bool isModed(char modechar) const;
+	bool isMember(int fd) const;
+	bool isGuest(int fd) const;
+	bool isAdmin(int fd) const;
+	void removeFromGuests(int fd);
 	~Chanel();
 };
 

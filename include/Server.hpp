@@ -73,6 +73,8 @@ class Server
     	Chanel *getChanel(std::string name);
 		std::map<std::string, Chanel *> &getChanelsVector();
 		void SendMsg(int fd, std::string msg);
+		Client *getClientbyNick(std::string nick);
+		bool findClientbyNick(std::string nick);
 		~Server();
 };
 
