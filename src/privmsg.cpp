@@ -34,6 +34,25 @@ void cmdPrivmsg(Server &s, Client &client, std::string line)
 	if (!message.substr(0, name_pos).size())
 		return(client.MsgToMe(ERR_NORECIPIENT(client.getName(), "PRIVMSG")));
 	sendto.push_back(message.substr(0, name_pos));
+	message = message.substr(name_pos + 1);
+	for (size_t i = 0; i < sendto.size(); i++){
+		if (sendto[i][0] == '#')
+		{
+			Chanel *c = s.getChanel(sendto[i]);
+			if (!c)
+				client.MsgToMe(ERR_NOSUCHCHANNEL(client.getNick(), sendto[i]));
+			else
+				c->sendMsgToMembers(&s, CMD_PRIVMSG(client.getNick(), client.getName(), client.getHost(), c->getChanelName(), message));
+		}
+		else
+		{
+			Client *c = s.getClientbyNick(sendto[i]);
+			if (!c)
+				client.MsgToMe(ERR_NOSUCHNICK(client.getNick(), sendto[i]));
+			else
+				c->MsgToMe(CMD_PRIVMSG(client.getNick(), client.getName(), client.getHost(), c->getName(), message));
+		}
+	}
 	// std::cout<<sendto[0]<<std::endl;
 	(void) s;
 }
