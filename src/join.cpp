@@ -132,7 +132,7 @@ void cmdJoin(Server &s, Client& client, std::string line)
         {
             Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
             client.MsgToMe(my_serv_name" Channel " + f_name + " created");
-            if(ch->getChanelTopic().empty())
+            if(!ch->getChanelTopic().empty())
                 client.MsgToMe(RPL_TOPIC(nick, name, ch->getChanelTopic()));
             else
                 client.MsgToMe(RPL_NOTOPIC(nick, name));
