@@ -122,7 +122,7 @@ void cmdJoin(Server &s, Client& client, std::string line)
                 ch->addMember(client.getFd());
                 client.addChanel(*(ch));
                 client.MsgToMe(my_serv_name" you joined " + f_name);
-                if(ch->getChanelTopic().empty())
+                if(!ch->getChanelTopic().empty())
                     client.MsgToMe(RPL_TOPIC(nick, name, ch->getChanelTopic()));
                 else
                     client.MsgToMe(RPL_NOTOPIC(nick, name));
