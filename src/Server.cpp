@@ -55,6 +55,38 @@ std::map<std::string, Chanel *> &Server::getChanelsVector()
     return _chanels;
 }
 
+Client *Server::getClientbyNick(std::string nick)
+{
+    for (std::map<int, Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+    {
+		std::string check_nick;
+        Client *cli = &i->second;
+        check_nick = cli->getNick();
+		str_tolower(check_nick);
+		str_tolower(nick);
+        if(check_nick == nick)
+            return (cli);
+    }
+    return(NULL);
+}
+
+bool Server::findClientbyNick(std::string nick)
+{
+    for (std::map<int, Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+    {
+        std::string check_nick;
+        Client cli = i->second;
+        check_nick = cli.getNick();
+		str_tolower(check_nick);
+		str_tolower(nick);
+        if(check_nick == nick)
+            return (true);
+    }
+    return (false);
+}
+
+
+
 bool Server::findChanel(std::string name)
 {
     for (std::map<std::string, Chanel *>::iterator it = _chanels.begin(); it != _chanels.end(); ++it)
@@ -194,55 +226,57 @@ bool setup_complete(Client &client)
 
 void Server::parse_input(Client &client)
 {
-	std::string buf = client.getBuf();
-	// std::cout<<"Client buf: "<<buf<<std::endl;
-	if (buf.find("CAP") == 0)
+	std::string buf = client.getLine();
+	std::cout<<"Client buf: "<<buf<<std::endl;
+	if (buf.find("CAP ") == 0)
 		client.MsgToMe("No capabilities available.");
-	else if (buf.find("PASS") == 0)
+	else if (buf.find("PASS ") == 0)
 	{
 		buf = buf.substr(5, buf.size());
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
 		if (buf != _password)
 			client.MsgToMe(ERR_PASSWDMISMATCH(client.getName()));
-		else
-		{
-			client.MsgToMe(RPL_WELCOME(client.getName()));
+		else{
 			client.setIsAuthenticated(true);
+			client.MsgToMe("Password accepted.");
 		}
 	}
-	else if (buf.find("NICK") == 0)
+	else if (buf.find("NICK ") == 0)
 	{
 		buf = buf.substr(5, buf.size());
 		if (nick_is_valid(buf, client)){
 			client.setNick(buf);}
 	}
-	else if (buf.find("USER") == 0)
+	else if (buf.find("USER ") == 0)
 	{
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
 		else
-			if (cmdUser(client, buf.substr(5, buf.size())))
+			if (cmdUser(client, buf.substr(5, buf.size()))){
 				client.setIsRegistered(true);
+				client.MsgToMe(RPL_WELCOME(client.getName()));
+			}
 	}
 	else if (setup_complete(client)){
-		if (buf.find("JOIN") == 0)
+		if (buf.find("JOIN ") == 0)
 			cmdJoin(*this, client, buf.substr(5, buf.size()));
-		else if (buf.find("PRIVMSG") == 0)
+		else if (buf.find("PRIVMSG ") == 0)
 			cmdPrivmsg(*this, client, buf.substr(8, buf.size())); // cambiar por la funcion adecuada 
-		else if (buf.find("QUIT") == 0)
+		else if (buf.find("QUIT ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("KICK") == 0)
+		else if (buf.find("KICK ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("INVITE") == 0)
+		else if (buf.find("INVITE ") == 0)
 			buf = buf.substr(7, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("TOPIC") == 0)
+		else if (buf.find("TOPIC ") == 0)
 			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
-		else if (buf.find("MODE") == 0)
+		else if (buf.find("MODE ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+		else
+			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getName(), buf.substr(0, buf.find(" "))));
 	}
 }
-
 void Server::readClientInput(int fd, int i)
 {
 	char buf[256] = {'\0'};
@@ -261,27 +295,30 @@ void Server::readClientInput(int fd, int i)
 	}
 	else
 	{
-		std::cout<<"original buffer:"<<buf;
-		_clients[fd].setBuf(buf);
 		size_t pos;
+		_clients[fd].setBuf(buf);
+		while ((pos = _clients[fd].getBuf().find("\r\n")) == std::string::npos
+			&& ((pos = _clients[fd].getBuf().find("\n")) == std::string::npos))
+		{
+			nbytes = recv(fd, &buf, sizeof(buf), 0);
+			_clients[fd].setBuf(_clients[fd].getBuf() + buf);
+		}
 		if ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
 			while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
 				std::string line = _clients[fd].getBuf().substr(0, pos);
-				_clients[fd].getBuf().erase(0, pos + 2);
-				_clients[fd].setBuf((char *)line.c_str());
+				_clients[fd].setBuf(_clients[fd].getBuf().substr(pos + 2));
+				_clients[fd].setLine((char *)line.c_str());
 				parse_input(_clients[fd]);
 			}
 		}
 		else if ((pos = _clients[fd].getBuf().find("\n")) != std::string::npos){
 			while ((pos = _clients[fd].getBuf().find("\n")) != std::string::npos){
 				std::string line = _clients[fd].getBuf().substr(0, pos);
-				_clients[fd].getBuf().erase(0, pos + 1);
-				_clients[fd].setBuf((char *)line.c_str());
+				_clients[fd].setBuf(_clients[fd].getBuf().substr(pos + 1));
+				_clients[fd].setLine((char *)line.c_str());
 				parse_input(_clients[fd]);
 			}
 		}
-		else
-			parse_input(_clients[fd]);
 		// std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
 		// std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
 		// std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
@@ -303,22 +340,24 @@ void Server::accept_clients()
 	}
 	else if (client_fd >= 0)
 	{
-		_acepted_fds.push_back(client_fd);
-
+		char ip[INET_ADDRSTRLEN];
+		inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof(ip));
+		_accepted_fds.push_back(client_fd);
+		_accepted_ips[client_fd] = ip;
 		std::cout << "Nueva Conexion" << std::endl;
 	}
 }
 
 void Server::add_clients()
 {
-    for (size_t i = 0; i < _acepted_fds.size(); i++)
+    for (size_t i = 0; i < _accepted_fds.size(); i++)
     {
-        int clifd = _acepted_fds[i];
+        int clifd = _accepted_fds[i];
         struct pollfd pfd = { clifd, POLLIN, 0 };
         _pfd_arr.push_back(pfd);
-        _clients.insert(std::make_pair(clifd, Client(clifd)));
+        _clients.insert(std::make_pair(clifd, Client(clifd, _accepted_ips[clifd])));
     }
-    _acepted_fds.clear();
+    _accepted_fds.clear();
 
 }
 
@@ -394,7 +433,7 @@ void Server::pollLoop()
             }
 			
 		}
-		if (_acepted_fds.size() > 0)
+		if (_accepted_fds.size() > 0)
 			add_clients();
 		if (_disconnected_sockets.size() > 0)
 			disconnect_clients();

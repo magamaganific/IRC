@@ -3,16 +3,16 @@
 Client::Client(){
 }
 
-Client::Client(int fd)
-:_fd(fd), _nick(""), _name("unregistered"),
+Client::Client(int fd, const std::string &hostname)
+:_fd(fd), _nick(""), _name("User"), _hostname(hostname),
 _isRegistered(false), _isAuthenticated(false),
-_isOperator(false), _buf(""){
+_isOperator(false), _buf(""), _line(""){
 }
 
 Client::Client(const Client &old)
-: _fd(old._fd), _nick(old._nick), _name(old._name),
+: _fd(old._fd), _nick(old._nick), _name(old._name), _hostname(old._hostname),
 _isRegistered(old._isRegistered), _isAuthenticated(old._isAuthenticated),
-_isOperator(old._isOperator), _buf(old._buf), _chanels(old._chanels){
+_isOperator(old._isOperator), _buf(old._buf), _line(old._line), _chanels(old._chanels){
 }
 
 Client &Client::operator=(const Client &old){
@@ -24,6 +24,8 @@ Client &Client::operator=(const Client &old){
 		this->_isRegistered = old._isRegistered;
 		this->_isAuthenticated = old._isAuthenticated;
 		this->_isOperator = old._isOperator;
+		this->_buf = old._buf;
+		this->_line = old._line;
 		this->_chanels = old._chanels;
 	}
 	return (*this);
@@ -51,6 +53,14 @@ void Client::setHost(std::string host){
 
 void Client::setBuf(char *buf){
 	this->_buf = buf;
+}
+
+void Client::setBuf(std::string buf){
+	this->_buf = buf;
+}
+
+void Client::setLine(std::string buf){
+	this->_line = buf;
 }
 
 void Client::setIsRegistered(bool tof){
@@ -83,6 +93,10 @@ std::string Client::getHost(){
 
 std::string Client::getBuf(){
 	return(_buf);
+}
+
+std::string Client::getLine(){
+	return(_line);
 }
 
 bool Client::getIsRegistered(){

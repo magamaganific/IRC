@@ -4,7 +4,7 @@
  #include "Server.hpp"
  #include "Chanel.hpp"
 
- class Chanel;
+class Chanel;
 
 class Client
 {
@@ -18,10 +18,11 @@ private:
 	bool		_isAuthenticated;
 	bool		_isOperator;
 	std::string _buf;
+	std::string _line;
 	std::vector<std::string>    _chanels;
 public:
 	Client();
-	Client(int fd);
+	Client(int fd, const std::string &hostname);
 	Client(const Client &old);
 	Client&operator=(const Client &old);
 	~Client();
@@ -31,6 +32,8 @@ public:
 	void setReal(std::string real);
 	void setHost(std::string host);
 	void setBuf(char *buf);
+	void setBuf(std::string buf);
+	void setLine(std::string buf);
 	void setIsRegistered(bool tof);
 	void setIsAuthenticated(bool tof);
 	void setIsOperator(bool tof);
@@ -40,6 +43,7 @@ public:
 	std::string getReal();
 	std::string getHost();
 	std::string getBuf();
+	std::string getLine();
 	bool		getIsRegistered();
 	bool		getIsAuthenticated();
 	bool		getIsOperator();
