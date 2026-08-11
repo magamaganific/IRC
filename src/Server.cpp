@@ -225,7 +225,7 @@ bool setup_complete(Client &client)
 void Server::parse_input(Client &client)
 {
 	std::string buf = client.getLine();
-	// std::cout<<"Client buf: "<<buf<<std::endl;
+	std::cout<<"Client buf: "<<buf<<std::endl;
 	if (buf.find("CAP ") == 0)
 		client.MsgToMe("No capabilities available.");
 	else if (buf.find("PASS ") == 0)
@@ -293,9 +293,14 @@ void Server::readClientInput(int fd, int i)
 	}
 	else
 	{
-		std::cout<<"original buffer:"<<buf;
-		_clients[fd].setBuf(buf);
 		size_t pos;
+		_clients[fd].setBuf(buf);
+		while ((pos = _clients[fd].getBuf().find("\r\n")) == std::string::npos
+			&& ((pos = _clients[fd].getBuf().find("\n")) == std::string::npos))
+		{
+			nbytes = recv(fd, &buf, sizeof(buf), 0);
+			_clients[fd].setBuf(_clients[fd].getBuf() + buf);
+		}
 		if ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
 			while ((pos = _clients[fd].getBuf().find("\r\n")) != std::string::npos){
 				std::string line = _clients[fd].getBuf().substr(0, pos);
@@ -312,8 +317,6 @@ void Server::readClientInput(int fd, int i)
 				parse_input(_clients[fd]);
 			}
 		}
-		else
-			parse_input(_clients[fd]);
 		// std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
 		// std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
 		// std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
