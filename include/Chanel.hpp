@@ -40,16 +40,21 @@ public:
 	void setChanelName(const std::string name);
     void setChanelTopic(const std::string topic);
 	void setChanelPass(const std::string pass);
+	void setLimit(int n);
+	void setMode(char modechar);
 	void addMember(int fd);
 	void addAdmin(int fd);
 	void addGuest(int fd);
 
-	bool Chanel::isModed(char modechar) const;
-	bool Chanel::isGuest(int fd) const;
-	bool Chanel::isAdmin(int fd) const;
-	void Chanel::removeFromGuests(int fd);
+	bool isModed(char modechar) const;
+	bool isMember(int fd) const;
+	bool isGuest(int fd) const;
+	bool isAdmin(int fd) const;
+	void unsetMode(char modechar);
+	void removeFromGuests(int fd);
+	void removeFromAdmins(Server &s, int fd);
 
-	void Chanel::sendMsgToMembers(std::string msg) const;
+	void sendMsgToMembers(std::string msg) const;
 	~Chanel();
 
 	

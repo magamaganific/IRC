@@ -81,12 +81,32 @@ void Chanel::setChanelPass(const std::string pass)
 	_chanel_pass = pass;
 }
 
+void Chanel::setLimit(int n)
+{
+    _limit = n;
+}
+
+void Chanel::setMode(char modechar)
+{
+    if (!isModed(modechar))
+        _chanel_mode.append(1, modechar);
+}
+
+
 bool Chanel::isModed(char modechar) const
 {
     std::size_t pos = _chanel_mode.find(modechar);
     if (pos != std::string::npos)
         return true;
     return false;
+}
+
+bool Chanel::isMember(int fd) const
+{
+    for(std::vector<int>::const_iterator i = _members.begin(); i != _members.end(); i++)
+        if((*i) == fd)
+            return true;
+    return false;   
 }
 
 bool Chanel::isGuest(int fd) const
@@ -103,6 +123,21 @@ bool Chanel::isAdmin(int fd) const
         if((*i) == fd)
             return true;
     return false;
+}
+
+
+
+void Chanel::unsetMode(char mode_str)
+{
+    std::size_t pos = _chanel_mode.find(mode_str);
+    if (pos != std::string::npos)
+    {
+        _chanel_mode.erase(pos, 1);
+        if (mode_str == 'l')
+            _limit = 0;
+        else if (mode_str == 'k')
+            _chanel_pass.clear();
+    }
 }
 
 
@@ -140,6 +175,32 @@ void Chanel::addGuest(int fd)
         if(_guests[i] == fd)
             return;
     _guests.push_back(fd);
+}
+
+
+void Chanel::removeFromAdmins(Server &s,int fd)
+{
+    for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
+    {
+        if (*i == fd)
+        {
+            _admins.erase(i);
+            break;
+        }
+    }
+    if (_admins.empty())
+    {
+        for (size_t i = 0; i < _members.size(); ++i)
+        {
+            if (_members[i] == fd)
+                continue;
+            if (s.findClientbyFd(_members[i]))
+            {
+                addAdmin(_members[i]);
+                break;
+            }
+        }
+    }
 }
 
 

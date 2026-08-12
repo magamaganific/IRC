@@ -13,11 +13,7 @@ bool validPass(Chanel* chanel, std::string pass, int fd)
         if(chanel->getChanelPass().empty())
             return true;
         else if((chanel->getChanelPass() == pass) || (chanel->isGuest(fd)))
-        {
-            /*if (chanel->isGuest(fd))
-                chanel->removeFromGuests(fd);*/
             return true;
-        }
         else
             return false;
     }
