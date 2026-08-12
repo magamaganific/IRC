@@ -317,6 +317,8 @@ void Server::readClientInput(int fd, int i)
 				parse_input(_clients[fd]);
 			}
 		}
+		else
+			parse_input(_clients[fd]);
 		// std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
 		// std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
 		// std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
