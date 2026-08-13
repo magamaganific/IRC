@@ -149,14 +149,14 @@ bool find_space(std::string buf)
 bool Server::nick_is_valid(std::string buf, Client &client)
 {
 	if (!buf.size())
-		return(client.MsgToMe(ERR_NONICKNAMEGIVEN(client.getName())), false);
+		return(client.MsgToMe(ERR_NONICKNAMEGIVEN(client.getNick())), false);
 	// std::cout<<"checkpoint"<<std::endl;
 	if (buf[0] == '#' || buf[0] == ':' || find_space(buf))
-		return(client.MsgToMe(ERR_ERRONEUSNICKNAME(client.getName(), buf)), false);
+		return(client.MsgToMe(ERR_ERRONEUSNICKNAME(client.getNick(), buf)), false);
 	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		if (buf == it->second.getNick())
-			return (client.MsgToMe(ERR_NICKNAMEINUSE(client.getName(), buf)), false);
+			return (client.MsgToMe(ERR_NICKNAMEINUSE(client.getNick(), buf)), false);
 	}
 	return(true);
 }
@@ -177,23 +177,23 @@ bool Server::cmdUser(Client &client, std::string buf){
 		if (!username.size()){
 			username = buf.substr(0, pos);
 			if (username == "0" || username == "*" || username.size() < 1)
-				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")), false);
 		}
 		else if (!zero.size()){
 			zero = buf.substr(0, pos);
 			if(zero != "0")
-				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")), false);
 		}
 		else if (!asterisk.size()){
 			asterisk = buf.substr(0, pos);
 			if(asterisk != "*")
-				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")),false);
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")),false);
 		}
 		else if (!realname.size())
 			realname = buf;
 		check = buf.substr(pos + 1);
 		if (check == buf && !realname.size())
-			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")), false);
 		buf = check;
 	}
 	client.setName(username);
@@ -219,10 +219,10 @@ bool Server::cmdUser(Client &client, std::string buf){
 bool setup_complete(Client &client)
 {
 	if (client.getIsAuthenticated() == false)
-		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName() 
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getNick() 
 			+ " :Authenticate to access channel functions"), false);
 	if (client.getIsRegistered() == false)
-		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName()
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getNick()
 			+ " :Register to access channel functions"), false);
 	return (true);
 }
@@ -237,9 +237,9 @@ void Server::parse_input(Client &client)
 	{
 		buf = buf.substr(5, buf.size());
 		if (client.getIsRegistered() == true)
-			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getNick()));
 		if (buf != _password)
-			client.MsgToMe(ERR_PASSWDMISMATCH(client.getName()));
+			client.MsgToMe(ERR_PASSWDMISMATCH(client.getNick()));
 		else{
 			client.setIsAuthenticated(true);
 			client.MsgToMe("Password accepted.");
@@ -282,7 +282,7 @@ void Server::parse_input(Client &client)
 		else if (buf.find("MODE ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 		else
-			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getName(), buf.substr(0, buf.find(" "))));
+			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getNick(), buf.substr(0, buf.find(" "))));
 	}
 }
 void Server::readClientInput(int fd, int i)
