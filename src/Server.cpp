@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/08/13 16:46:52 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/08/13 19:25:40 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,11 +62,6 @@ std::map<int, Client>  &Server::getClients(){
 std::map<std::string, Chanel *> &Server::getChanelsVector()
 {
     return _chanels;
-}
-
-bool Server::findClientbyFd(int fd)
-{
-    return _clients.count(fd);
 }
 
 Client *Server::getClientbyNick(std::string nick)
