@@ -54,6 +54,11 @@ Chanel *Server::getChanel(std::string name)
     } 
     return(NULL);
 }
+
+std::map<int, Client>  &Server::getClients(){
+	return(_clients);
+}
+
 std::map<std::string, Chanel *> &Server::getChanelsVector()
 {
     return _chanels;
@@ -79,6 +84,13 @@ Client *Server::getClientbyNick(std::string nick)
     return(NULL);
 }
 
+
+bool Server::findClientbyFd(int fd)
+{
+    return _clients.count(fd);
+}
+
+
 bool Server::findClientbyNick(std::string nick)
 {
     for (std::map<int, Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
@@ -93,8 +105,6 @@ bool Server::findClientbyNick(std::string nick)
     }
     return (false);
 }
-
-
 
 bool Server::findChanel(std::string name)
 {
@@ -155,14 +165,14 @@ bool find_space(std::string buf)
 bool Server::nick_is_valid(std::string buf, Client &client)
 {
 	if (!buf.size())
-		return(client.MsgToMe(ERR_NONICKNAMEGIVEN(client.getName())), false);
+		return(client.MsgToMe(ERR_NONICKNAMEGIVEN(client.getNick())), false);
 	// std::cout<<"checkpoint"<<std::endl;
 	if (buf[0] == '#' || buf[0] == ':' || find_space(buf))
-		return(client.MsgToMe(ERR_ERRONEUSNICKNAME(client.getName(), buf)), false);
+		return(client.MsgToMe(ERR_ERRONEUSNICKNAME(client.getNick(), buf)), false);
 	for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		if (buf == it->second.getNick())
-			return (client.MsgToMe(ERR_NICKNAMEINUSE(client.getName(), buf)), false);
+			return (client.MsgToMe(ERR_NICKNAMEINUSE(client.getNick(), buf)), false);
 	}
 	return(true);
 }
@@ -183,23 +193,23 @@ bool Server::cmdUser(Client &client, std::string buf){
 		if (!username.size()){
 			username = buf.substr(0, pos);
 			if (username == "0" || username == "*" || username.size() < 1)
-				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")), false);
 		}
 		else if (!zero.size()){
 			zero = buf.substr(0, pos);
 			if(zero != "0")
-				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")), false);
 		}
 		else if (!asterisk.size()){
 			asterisk = buf.substr(0, pos);
 			if(asterisk != "*")
-				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")),false);
+				return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")),false);
 		}
 		else if (!realname.size())
 			realname = buf;
 		check = buf.substr(pos + 1);
 		if (check == buf && !realname.size())
-			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getName(), "USER")), false);
+			return (client.MsgToMe(ERR_NEEDMOREPARAMS(client.getNick(), "USER")), false);
 		buf = check;
 	}
 	client.setName(username);
@@ -225,10 +235,10 @@ bool Server::cmdUser(Client &client, std::string buf){
 bool setup_complete(Client &client)
 {
 	if (client.getIsAuthenticated() == false)
-		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName() 
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getNick() 
 			+ " :Authenticate to access channel functions"), false);
 	if (client.getIsRegistered() == false)
-		return(client.MsgToMe(my_serv_name" CSTOM " + client.getName()
+		return(client.MsgToMe(my_serv_name" CSTOM " + client.getNick()
 			+ " :Register to access channel functions"), false);
 	return (true);
 }
@@ -243,9 +253,9 @@ void Server::parse_input(Client &client)
 	{
 		buf = buf.substr(5, buf.size());
 		if (client.getIsRegistered() == true)
-			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getNick()));
 		if (buf != _password)
-			client.MsgToMe(ERR_PASSWDMISMATCH(client.getName()));
+			client.MsgToMe(ERR_PASSWDMISMATCH(client.getNick()));
 		else{
 			client.setIsAuthenticated(true);
 			client.MsgToMe("Password accepted.");
@@ -260,11 +270,16 @@ void Server::parse_input(Client &client)
 	else if (buf.find("USER ") == 0)
 	{
 		if (client.getIsRegistered() == true)
-			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getNick()));
 		else
 			if (cmdUser(client, buf.substr(5, buf.size()))){
 				client.setIsRegistered(true);
-				client.MsgToMe(RPL_WELCOME(client.getName()));
+				client.MsgToMe(RPL_WELCOME(client.getNick()));
+				client.MsgToMe(RPL_YOURHOST(client.getNick()));
+				client.MsgToMe(RPL_CREATED(client.getNick()));
+				client.MsgToMe(RPL_MYINFO(client.getNick()));
+				client.MsgToMe(RPL_ISUPPORT(client.getNick()));
+				client.MsgToMe(RPL_ENDOFMOTD(client.getNick()));
 			}
 	}
 	else if (setup_complete(client)){
@@ -277,13 +292,13 @@ void Server::parse_input(Client &client)
 		else if (buf.find("KICK ") == 0)
 			cmdKick(*this, client, buf.substr(5, buf.size())); // cambiar por la funcion adecuada
 		else if (buf.find("INVITE ") == 0)
-			buf = buf.substr(7, buf.size()); // cambiar por la funcion adecuada
+			cmdInvite(*this, client, buf.substr(7, buf.size())); // cambiar por la funcion adecuada
 		else if (buf.find("TOPIC ") == 0)
 			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("MODE ") == 0)
-			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+			cmdMode(*this, client, buf.substr(5, buf.size())); // cambiar por la funcion adecuada
 		else
-			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getName(), buf.substr(0, buf.find(" "))));
+			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getNick(), buf.substr(0, buf.find(" "))));
 	}
 }
 void Server::readClientInput(int fd, int i)
@@ -328,6 +343,8 @@ void Server::readClientInput(int fd, int i)
 				parse_input(_clients[fd]);
 			}
 		}
+		else
+			parse_input(_clients[fd]);
 		// std::cout<<"NICK: "<<_clients[fd].getNick()<<std::endl;
 		// std::cout<<"USERNAME: "<<_clients[fd].getName()<<std::endl;
 		// std::cout<<"REALNAME: "<<_clients[fd].getReal()<<std::endl;
@@ -454,7 +471,7 @@ void Server::SendMsg(int fd, std::string msg)
 {
     if (msg.length() > 510)
         msg.erase(510);
-    std::cout << fd << " " << msg << "\n";
+    std::cout << fd << " " << msg << "\r\n";
     msg += "\r\n";
 
     ssize_t total = 0;

@@ -81,6 +81,18 @@ void Chanel::setChanelPass(const std::string pass)
 	_chanel_pass = pass;
 }
 
+void Chanel::setLimit(int n)
+{
+    _limit = n;
+}
+
+void Chanel::setMode(char modechar)
+{
+    if (!isModed(modechar))
+        _chanel_mode.append(1, modechar);
+}
+
+
 bool Chanel::isModed(char modechar) const
 {
     std::size_t pos = _chanel_mode.find(modechar);
@@ -114,6 +126,33 @@ bool Chanel::isAdmin(int fd) const
 }
 
 
+
+void Chanel::unsetMode(char mode_str)
+{
+    std::size_t pos = _chanel_mode.find(mode_str);
+    if (pos != std::string::npos)
+    {
+        _chanel_mode.erase(pos, 1);
+        if (mode_str == 'l')
+            _limit = 0;
+        else if (mode_str == 'k')
+            _chanel_pass.clear();
+    }
+}
+
+
+void Chanel::removeFromGuests(int fd)
+{
+    for (std::vector<int>::iterator i = _guests.begin(); i != _guests.end(); ++i)
+    {
+        if (*i == fd)
+        {
+            _guests.erase(i);
+            return;
+        }
+    }    
+}
+
 void Chanel::addMember(int fd)
 {
     for (size_t i = 0; i < _members.size(); i++)
@@ -138,14 +177,41 @@ void Chanel::addGuest(int fd)
     _guests.push_back(fd);
 }
 
-void Chanel::sendMsgToMembers(Server *s, std::string msg) const
+
+void Chanel::removeFromAdmins(Server &s,int fd)
+{
+    for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
+    {
+        if (*i == fd)
+        {
+            _admins.erase(i);
+            break;
+        }
+    }
+    if (_admins.empty())
+    {
+        for (size_t i = 0; i < _members.size(); ++i)
+        {
+            if (_members[i] == fd)
+                continue;
+            if (s.findClientbyFd(_members[i]))
+            {
+                addAdmin(_members[i]);
+                break;
+            }
+        }
+    }
+}
+
+
+void Chanel::sendMsgToMembers(Server *s, std::string msg, int fd) const
 {
     for (size_t i = 0; i < _members.size(); ++i)
     {
-        // if (_server->findClientbyFd(_members[i]))
-        // {
+        if (s->findClientbyFd(_members[i]) && _members[i] != fd)
+        {
             s->SendMsg(_members[i], msg);
-        // }
+        }
     }
 }
 

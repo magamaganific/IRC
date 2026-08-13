@@ -42,7 +42,7 @@ void cmdPrivmsg(Server &s, Client &client, std::string line)
 			if (!c)
 				client.MsgToMe(ERR_NOSUCHCHANNEL(client.getNick(), sendto[i]));
 			else
-				c->sendMsgToMembers(&s, CMD_PRIVMSG(client.getNick(), client.getName(), client.getHost(), c->getChanelName(), message));
+				c->sendMsgToMembers(&s, CMD_PRIVMSG(client.getNick(), client.getName(), client.getHost(), c->getChanelName(), message), client.getFd());
 		}
 		else
 		{

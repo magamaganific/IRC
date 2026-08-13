@@ -14,7 +14,7 @@ bool validPass(Chanel* chanel, std::string pass, int fd)
    // {
         if(chanel->getChanelPass().empty())
             return true;
-        else if((chanel->getChanelPass() == pass))
+        else if((chanel->getChanelPass() == pass) || (chanel->isGuest(fd)))
             return true;
         else
             return false;
@@ -40,15 +40,14 @@ bool isPrivate(Chanel *chanel, int fd)
     (void) fd; //HAY QUE MIRAR PARA QUE VALE LO DEL FD ESTE...
     if(chanel->isModed('i'))
     {
-        /*if(chanel->isInvited(fd))
+        if(chanel->isGuest(fd))
             return(true);
-        else*/
+        else
             return(false);
     }
     else
         return(true);
 }
-
 
 bool nameIsValid(std::string name)
 {
@@ -87,6 +86,24 @@ std::map<std::string, std::string> getChanelParams(std::string names, std::strin
     return (ch_params);
 }
 
+void    names_command(Server &s, Chanel &ch, Client &client)
+{
+    std::map<int, Client> &clients = s.getClients();
+    std::string nick = client.getNick();
+    std::string namesList;
+    std::string name = ch.getChanelName();
+
+    namesList = RPL_NAMREPLY(nick, name); 
+    for( std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        if (ch.isAdmin(it->first))
+            namesList += "@" + it->second.getNick() + " ";
+        else
+            namesList += it->second.getNick() + " ";
+    }
+    client.MsgToMe(namesList); 
+    client.MsgToMe(RPL_ENDOFNAMES(nick, name));
+}
 
 
 void cmdJoin(Server &s, Client& client, std::string line)
@@ -118,26 +135,29 @@ void cmdJoin(Server &s, Client& client, std::string line)
                 client.MsgToMe(ERR_INVITEONLYCHAN(nick, f_name));
             else
             {
-                ch->sendMsgToMembers(&s, my_serv_name" " + client.getNick() + " joined " + f_name);
+                // ch->sendMsgToMembers(&s, my_serv_name" " + client.getNick() + " joined " + f_name);
                 ch->addMember(client.getFd());
                 client.addChanel(*(ch));
-                client.MsgToMe(my_serv_name" you joined " + f_name);
+                ch->sendMsgToMembers(&s,":" + client.getNick() + "!" + client.getName() + "@" + client.getHost()+ " JOIN " +  f_name, 0);
                 if(!ch->getChanelTopic().empty())
                     client.MsgToMe(RPL_TOPIC(nick, name, ch->getChanelTopic()));
                 else
                     client.MsgToMe(RPL_NOTOPIC(nick, name));
+                names_command(s, *ch, client);
             }
         }
         else
         {
             Chanel *ch = new Chanel (f_name, f_pass, client.getFd());
-            client.MsgToMe(my_serv_name" Channel " + f_name + " created");
+            ch->addMember(client.getFd());
+            // client.addChanel(*(ch));
+            ch->sendMsgToMembers(&s,":" + client.getNick() + "!" + client.getName() + "@" + client.getHost()+ " JOIN " +  f_name, 0);
             if(!ch->getChanelTopic().empty())
                 client.MsgToMe(RPL_TOPIC(nick, name, ch->getChanelTopic()));
             else
                 client.MsgToMe(RPL_NOTOPIC(nick, name));
+            names_command(s, *ch, client);
             s.getChanelsVector()[f_name] = ch;
-            client.addChanel(*ch);
         }
     }
 }

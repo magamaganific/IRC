@@ -6,13 +6,13 @@ Client::Client(){
 Client::Client(int fd, const std::string &hostname)
 :_fd(fd), _nick(""), _name("User"), _hostname(hostname),
 _isRegistered(false), _isAuthenticated(false),
-_isOperator(false), _buf(""), _line(""){
+ _buf(""), _line(""){
 }
 
 Client::Client(const Client &old)
 : _fd(old._fd), _nick(old._nick), _name(old._name), _hostname(old._hostname),
 _isRegistered(old._isRegistered), _isAuthenticated(old._isAuthenticated),
-_isOperator(old._isOperator), _buf(old._buf), _line(old._line), _chanels(old._chanels){
+ _buf(old._buf), _line(old._line), _chanels(old._chanels){
 }
 
 Client &Client::operator=(const Client &old){
@@ -23,7 +23,6 @@ Client &Client::operator=(const Client &old){
 		this->_name = old._name;
 		this->_isRegistered = old._isRegistered;
 		this->_isAuthenticated = old._isAuthenticated;
-		this->_isOperator = old._isOperator;
 		this->_buf = old._buf;
 		this->_line = old._line;
 		this->_chanels = old._chanels;
@@ -71,9 +70,6 @@ void Client::setIsAuthenticated(bool tof){
 	_isAuthenticated = tof;
 }
 
-void Client::setIsOperator(bool tof){
-	_isOperator = tof;
-}
 
 std::string Client::getName(){
 	return(_name);
@@ -106,11 +102,6 @@ bool Client::getIsRegistered(){
 bool Client::getIsAuthenticated(){
 	return(_isAuthenticated);
 }
-
-bool Client::getIsOperator(){
-	return(_isOperator);
-}
-
 
 int Client::getFd() const{
 	// std::cout<<"get->"<<this->_fd<<std::endl;
@@ -150,7 +141,7 @@ void Client::MsgToMe(std::string msg)
 {
     if (msg.length() > 510)
         msg.erase(510);
-    std::cout << _fd << " " << msg << "\n";
+    std::cout << _fd << " " << msg << "\r\n";
     msg += "\r\n";
 
     ssize_t total = 0;

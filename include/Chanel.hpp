@@ -42,18 +42,22 @@ public:
 	void setChanelName(const std::string name);
     void setChanelTopic(const std::string topic);
 	void setChanelPass(const std::string pass);
+	void setLimit(int n);
+	void setMode(char modechar);
 	void addMember(int fd);
 	void addAdmin(int fd);
 	void addGuest(int fd);
-	void sendMsgToMembers(Server *s, std::string msg) const;
+	void sendMsgToMembers(Server *s, std::string msg, int fd) const;
 
 	bool isModed(char modechar) const;
 	bool isMember(int fd) const;
 	bool isGuest(int fd) const;
 	bool isAdmin(int fd) const;
-	void removeFromAdmins(Server &s,int fd);
-	void removeClient(Server &s, int fd);
+	void unsetMode(char modechar);
 	void removeFromGuests(int fd);
+	void removeFromAdmins(Server &s, int fd);
+	void removeClient(Server &s, int fd);
+
 	~Chanel();
 };
 
