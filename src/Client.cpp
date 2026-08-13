@@ -150,7 +150,7 @@ void Client::MsgToMe(std::string msg)
 {
     if (msg.length() > 510)
         msg.erase(510);
-    std::cout << _fd << " " << msg << "\n";
+    std::cout << _fd << " " << msg << "\r\n";
     msg += "\r\n";
 
     ssize_t total = 0;

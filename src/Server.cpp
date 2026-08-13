@@ -48,6 +48,11 @@ Chanel *Server::getChanel(std::string name)
     } 
     return(NULL);
 }
+
+std::map<int, Client>  &Server::getClients(){
+	return(_clients);
+}
+
 std::map<std::string, Chanel *> &Server::getChanelsVector()
 {
     return _chanels;
@@ -249,11 +254,16 @@ void Server::parse_input(Client &client)
 	else if (buf.find("USER ") == 0)
 	{
 		if (client.getIsRegistered() == true)
-			client.MsgToMe(ERR_ALREADYREGISTERED(client.getName()));
+			client.MsgToMe(ERR_ALREADYREGISTERED(client.getNick()));
 		else
 			if (cmdUser(client, buf.substr(5, buf.size()))){
 				client.setIsRegistered(true);
-				client.MsgToMe(RPL_WELCOME(client.getName()));
+				client.MsgToMe(RPL_WELCOME(client.getNick()));
+				client.MsgToMe(RPL_YOURHOST(client.getNick()));
+				client.MsgToMe(RPL_CREATED(client.getNick()));
+				client.MsgToMe(RPL_MYINFO(client.getNick()));
+				client.MsgToMe(RPL_ISUPPORT(client.getNick()));
+				client.MsgToMe(RPL_ENDOFMOTD(client.getNick()));
 			}
 	}
 	else if (setup_complete(client)){
@@ -437,7 +447,7 @@ void Server::SendMsg(int fd, std::string msg)
 {
     if (msg.length() > 510)
         msg.erase(510);
-    std::cout << fd << " " << msg << "\n";
+    std::cout << fd << " " << msg << "\r\n";
     msg += "\r\n";
 
     ssize_t total = 0;

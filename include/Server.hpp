@@ -72,6 +72,7 @@ class Server
 		bool cmdUser(Client &client, std::string buf);
 		bool findChanel(std::string name);
     	Chanel *getChanel(std::string name);
+    	std::map<int, Client> &getClients();
 		std::map<std::string, Chanel *> &getChanelsVector();
 		void SendMsg(int fd, std::string msg);
 		Client *getClientbyNick(std::string nick);
