@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
+/*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/22 18:07:46 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/08/13 16:46:52 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,10 @@ std::string Server::get_port()
 
 Server::~Server()
 {}
+Client &Server::getClientbyFd(int fd)
+{
+    return _clients[fd];
+}
 
 Chanel *Server::getChanel(std::string name)
 {
@@ -53,6 +57,11 @@ Chanel *Server::getChanel(std::string name)
 std::map<std::string, Chanel *> &Server::getChanelsVector()
 {
     return _chanels;
+}
+
+bool Server::findClientbyFd(int fd)
+{
+    return _clients.count(fd);
 }
 
 Client *Server::getClientbyNick(std::string nick)
@@ -266,7 +275,7 @@ void Server::parse_input(Client &client)
 		else if (buf.find("QUIT ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("KICK ") == 0)
-			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+			cmdKick(*this, client, buf.substr(5, buf.size())); // cambiar por la funcion adecuada
 		else if (buf.find("INVITE ") == 0)
 			buf = buf.substr(7, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("TOPIC ") == 0)
@@ -456,6 +465,15 @@ void Server::SendMsg(int fd, std::string msg)
         if (n_bytes < 0)
             throw std::runtime_error(strerror(errno));
         total += n_bytes;
+    }
+}
+void Server::eraseChanel(Chanel* chanel)
+{
+    if(chanel->getChanelMembers().size() == 0)
+    {
+        std::cout << "Removing empty channel: "<< chanel->getChanelName() << '\n';
+        _chanels.erase(chanel->getChanelName());
+        delete chanel;
     }
 }
 

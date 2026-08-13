@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dgargantilla <dgargantilla@student.42.f    +#+  +:+       +#+        */
+/*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:36 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/07/22 17:59:33 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/08/13 16:47:08 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,10 +73,13 @@ class Server
 		bool cmdUser(Client &client, std::string buf);
 		bool findChanel(std::string name);
     	Chanel *getChanel(std::string name);
+		Client &getClientbyFd(int fd);
 		std::map<std::string, Chanel *> &getChanelsVector();
 		void SendMsg(int fd, std::string msg);
 		Client *getClientbyNick(std::string nick);
 		bool findClientbyNick(std::string nick);
+		bool findClientbyFd(int fd);
+		void eraseChanel(Chanel* chanel);
 		~Server();
 };
 

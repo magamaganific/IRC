@@ -149,5 +149,46 @@ void Chanel::sendMsgToMembers(Server *s, std::string msg) const
     }
 }
 
+void Chanel::removeFromAdmins(Server &s,int fd)
+{
+    for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
+    {
+        if (*i == fd)
+        {
+            _admins.erase(i);
+            break;
+        }
+    }
+    if (_admins.empty())
+    {
+        for (size_t i = 0; i < _members.size(); ++i)
+        {
+            if (_members[i] == fd)
+                continue;
+            if (s.findClientbyFd(_members[i]))
+            {
+                Client &op = s.getClientbyFd(_members[i]);
+                addAdmin(_members[i]);
+                sendMsgToMembers(&s, CMD_MODE(_chanel_name, "+o", op.getNick()));
+                break;
+            }
+        }
+    }
+}
+
+void Chanel::removeClient(Server &s, int fd)
+{
+    if(isAdmin(fd))
+        removeFromAdmins(s, fd);
+    for (std::vector<int>::iterator it = _members.begin(); it != _members.end(); ++it)
+    {
+        if (*it == fd)
+        {
+            _members.erase(it);
+            return;
+        }
+    }
+}
+
 Chanel::~Chanel()
 {}

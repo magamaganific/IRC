@@ -51,6 +51,8 @@ public:
 	bool isMember(int fd) const;
 	bool isGuest(int fd) const;
 	bool isAdmin(int fd) const;
+	void removeFromAdmins(Server &s,int fd);
+	void removeClient(Server &s, int fd);
 	void removeFromGuests(int fd);
 	~Chanel();
 };
