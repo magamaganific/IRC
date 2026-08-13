@@ -67,7 +67,7 @@ void cmdKick(Server &s, Client &client, std::string line)
         else
         {
             std::string msgKick = ":" + client.getNick() + "!" + client.getName() + "@" + client.getHost() + " KICK " + chanelName + " " + *it + " :" + comment;
-            chanel->sendMsgToMembers(&s, msgKick);
+            chanel->sendMsgToMembers(&s, msgKick, client.getFd());
             chanel->removeClient(s, member->getFd());
             member->deleteChanel(*chanel);
             s.eraseChanel(chanel);

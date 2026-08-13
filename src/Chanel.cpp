@@ -235,7 +235,7 @@ void Chanel::removeFromAdmins(Server &s,int fd)
             {
                 Client &op = s.getClientbyFd(_members[i]);
                 addAdmin(_members[i]);
-                sendMsgToMembers(&s, CMD_MODE(_chanel_name, "+o", op.getNick()));
+                sendMsgToMembers(&s, CMD_MODE(_chanel_name, "+o", op.getNick()), op.getFd());
                 break;
             }
         }
