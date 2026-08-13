@@ -77,6 +77,7 @@ class Server
 		void SendMsg(int fd, std::string msg);
 		Client *getClientbyNick(std::string nick);
 		bool findClientbyNick(std::string nick);
+		bool findClientbyFd(int fd);
 		~Server();
 };
 

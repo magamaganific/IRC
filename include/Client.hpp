@@ -16,7 +16,6 @@ private:
 	std::string _hostname;
 	bool		_isRegistered;
 	bool		_isAuthenticated;
-	bool		_isOperator;
 	std::string _buf;
 	std::string _line;
 	std::vector<std::string>    _chanels;
@@ -46,7 +45,6 @@ public:
 	std::string getLine();
 	bool		getIsRegistered();
 	bool		getIsAuthenticated();
-	bool		getIsOperator();
 	void 		addChanel(const Chanel& ch);
   	void 		deleteChanel(const Chanel& ch);
 	const std::vector<std::string> &getChanels() const;

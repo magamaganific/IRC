@@ -73,6 +73,13 @@ Client *Server::getClientbyNick(std::string nick)
     return(NULL);
 }
 
+
+bool Server::findClientbyFd(int fd)
+{
+    return _clients.count(fd);
+}
+
+
 bool Server::findClientbyNick(std::string nick)
 {
     for (std::map<int, Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
@@ -87,8 +94,6 @@ bool Server::findClientbyNick(std::string nick)
     }
     return (false);
 }
-
-
 
 bool Server::findChanel(std::string name)
 {
@@ -276,11 +281,11 @@ void Server::parse_input(Client &client)
 		else if (buf.find("KICK ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("INVITE ") == 0)
-			buf = buf.substr(7, buf.size()); // cambiar por la funcion adecuada
+			cmdInvite(*this, client, buf.substr(7, buf.size())); // cambiar por la funcion adecuada
 		else if (buf.find("TOPIC ") == 0)
 			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("MODE ") == 0)
-			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+			cmdMode(*this, client, buf.substr(5, buf.size())); // cambiar por la funcion adecuada
 		else
 			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getNick(), buf.substr(0, buf.find(" "))));
 	}
