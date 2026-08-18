@@ -275,21 +275,22 @@ void Server::parse_input(Client &client)
 		if (buf.find("JOIN ") == 0)
 			cmdJoin(*this, client, buf.substr(5, buf.size()));
 		else if (buf.find("PRIVMSG ") == 0)
-			cmdPrivmsg(*this, client, buf.substr(8, buf.size())); // cambiar por la funcion adecuada 
+			cmdPrivmsg(*this, client, buf.substr(8, buf.size()));
 		else if (buf.find("QUIT ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("KICK ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("INVITE ") == 0)
-			cmdInvite(*this, client, buf.substr(7, buf.size())); // cambiar por la funcion adecuada
+			cmdInvite(*this, client, buf.substr(7, buf.size()));
 		else if (buf.find("TOPIC ") == 0)
-			buf = buf.substr(6, buf.size()); // cambiar por la funcion adecuada
+			cmdTopic(*this, client, buf.substr(6, buf.size()));
 		else if (buf.find("MODE ") == 0)
-			cmdMode(*this, client, buf.substr(5, buf.size())); // cambiar por la funcion adecuada
+			cmdMode(*this, client, buf.substr(5, buf.size()));
 		else
 			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getNick(), buf.substr(0, buf.find(" "))));
 	}
 }
+
 void Server::readClientInput(int fd, int i)
 {
 	char buf[256] = {'\0'};
