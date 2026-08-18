@@ -56,6 +56,7 @@ public:
 	void unsetMode(char modechar);
 	void removeFromGuests(int fd);
 	void removeFromAdmins(Server &s, int fd);
+	void removeClient(Server &s, int fd);
 
 	~Chanel();
 };

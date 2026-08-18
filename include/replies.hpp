@@ -24,6 +24,7 @@
 
 // Standard errors
 
+# define ERR_UNKNOWNERROR(clientNick, cmd, text)       (my_serv_name" 400 " + (clientNick) + " " + (cmd) + " : " + (text))
 # define ERR_NOSUCHNICK(clientNick, nick)              (my_serv_name" 401 " + (clientNick) + " " + (nick) + " :No such nick/channel")
 # define ERR_NOSUCHCHANNEL(nick, chname)               (my_serv_name" 403 " + (nick) + " " + (chname) + " :No such channel")
 # define ERR_CANNOTSENDTOCHAN(nick, channel)           (my_serv_name" 404 " + (nick) + " " + (channel) + " :Cannot send to channel")

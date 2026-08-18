@@ -203,6 +203,19 @@ void Chanel::removeFromAdmins(Server &s,int fd)
     }
 }
 
+void Chanel::removeClient(Server &s, int fd)
+{
+    if(isAdmin(fd))
+        removeFromAdmins(s, fd);
+    for (std::vector<int>::iterator it = _members.begin(); it != _members.end(); ++it)
+    {
+        if (*it == fd)
+        {
+            _members.erase(it);
+            return;
+        }
+    }
+}
 
 void Chanel::sendMsgToMembers(Server *s, std::string msg, int fd) const
 {
