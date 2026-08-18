@@ -14,3 +14,4 @@ void cmdTopic(Server &s, Client &client, std::string line);
 void cmdInvite(Server &s, Client &client, std::string line);
 void cmdMode(Server &s, Client &c, std::string arg);
 void cmdKick(Server &s, Client &client, std::string line);
+void cmdPing(Client &cli, std::string token);

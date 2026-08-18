@@ -286,6 +286,8 @@ void Server::parse_input(Client &client)
 			cmdTopic(*this, client, buf.substr(6, buf.size()));
 		else if (buf.find("MODE ") == 0)
 			cmdMode(*this, client, buf.substr(5, buf.size()));
+		else if (buf.find("PING ") == 0)
+			cmdPing(client, buf.substr(5, buf.size()));
 		else
 			client.MsgToMe(ERR_UNKNOWNCOMMAND(client.getNick(), buf.substr(0, buf.find(" "))));
 	}
