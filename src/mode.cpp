@@ -31,13 +31,13 @@ void TypeB(Server &s, Chanel &chan, Client &c, char mode_str, bool set, std::ist
 
 void TypeC(Chanel &chan, char mode_str, bool set, std::istringstream &str)
 {
-	if (set)
+	if (!set)
 	{
 		if (!chan.isModed(mode_str))
 			return;
 		chan.unsetMode(mode_str);
 	}
-	else if (!set)
+	else if (set)
 	{
 		std::string args;
 		str >> args;
