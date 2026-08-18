@@ -260,14 +260,25 @@ void Server::parse_input(Client &client)
 	{
 		buf = buf.substr(5, buf.size());
 		if (nick_is_valid(buf, client)){
-			client.setNick(buf);}
+			client.MsgToMe(CMD_NICK(client.getNick(), client.getName(), client.getHost(), buf));
+			client.setNick(buf);
+			if (!client.getName().empty() && !client.getIsRegistered()){
+				client.setIsRegistered(true);
+				client.MsgToMe(RPL_WELCOME(client.getNick()));
+				client.MsgToMe(RPL_YOURHOST(client.getNick()));
+				client.MsgToMe(RPL_CREATED(client.getNick()));
+				client.MsgToMe(RPL_MYINFO(client.getNick()));
+				client.MsgToMe(RPL_ISUPPORT(client.getNick()));
+				client.MsgToMe(RPL_ENDOFMOTD(client.getNick()));
+			}
+		}
 	}
 	else if (buf.find("USER ") == 0)
 	{
 		if (client.getIsRegistered() == true)
 			client.MsgToMe(ERR_ALREADYREGISTERED(client.getNick()));
 		else
-			if (cmdUser(client, buf.substr(5, buf.size()))){
+			if (cmdUser(client, buf.substr(5, buf.size())) && !client.getNick().empty()){
 				client.setIsRegistered(true);
 				client.MsgToMe(RPL_WELCOME(client.getNick()));
 				client.MsgToMe(RPL_YOURHOST(client.getNick()));
