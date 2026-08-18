@@ -6,7 +6,7 @@
 /*   By: frlorenz <frlorenz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 15:40:47 by frlorenz          #+#    #+#             */
-/*   Updated: 2026/08/18 15:37:00 by frlorenz         ###   ########.fr       */
+/*   Updated: 2026/08/18 16:10:44 by frlorenz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -494,4 +494,12 @@ void Server::eraseChanel(Chanel* chanel)
 
 void Server::end(){
 	freeaddrinfo(_addrLst);
+	if (!_chanels.empty())
+	{
+		for (std::map<std::string, Chanel *>::iterator it = _chanels.begin(); it != _chanels.end(); ++it)
+		{
+			delete(it->second);
+		}
+		_chanels.clear();
+	}
 }

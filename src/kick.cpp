@@ -23,7 +23,8 @@ std::string process_Comment(std::istringstream &iss)
     return (comment);
 }
 
-std::vector<std::string> ft_split(const std::string& text, char character) {
+std::vector<std::string> ft_split(const std::string& text, char character) 
+{
     std::vector<std::string> result;
     std::stringstream stream(text);
     std::string part;
