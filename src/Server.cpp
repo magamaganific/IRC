@@ -279,7 +279,7 @@ void Server::parse_input(Client &client)
 		else if (buf.find("QUIT ") == 0)
 			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
 		else if (buf.find("KICK ") == 0)
-			buf = buf.substr(5, buf.size()); // cambiar por la funcion adecuada
+			cmdKick(*this, client, buf.substr(5, buf.size()));
 		else if (buf.find("INVITE ") == 0)
 			cmdInvite(*this, client, buf.substr(7, buf.size()));
 		else if (buf.find("TOPIC ") == 0)
@@ -464,6 +464,16 @@ void Server::SendMsg(int fd, std::string msg)
         if (n_bytes < 0)
             throw std::runtime_error(strerror(errno));
         total += n_bytes;
+    }
+}
+
+void Server::eraseChanel(Chanel* chanel)
+{
+    if(chanel->getChanelMembers().size() == 0)
+    {
+        std::cout << "Removing empty channel: "<< chanel->getChanelName() << '\n';
+        _chanels.erase(chanel->getChanelName());
+        delete chanel;
     }
 }
 

@@ -78,6 +78,7 @@ class Server
 		Client *getClientbyNick(std::string nick);
 		bool findClientbyNick(std::string nick);
 		bool findClientbyFd(int fd);
+		void eraseChanel(Chanel* chanel);
 		~Server();
 };
 
